@@ -30,5 +30,5 @@ staticfiles/
 Thumbs.db
 
 # crt 
-.cert.crt
-.cert.key
+cert.crt
+cert.key
