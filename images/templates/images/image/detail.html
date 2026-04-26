@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}{{ image.title }}{% endblock %}
+{% block content %}
+ <h1>{{ image.title }}</h1>
+{% load thumbnail %}
+<a href="{{ image.image.url }}">
+    <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
+</a>
+ {% with total_likes=image.users_like.count users_like=image.users_like.all %}
+ <div class="image-info">
+ <div>
+ <span class="count">
+    <span class="total">{{ total_likes }}</span>
+    like{{ total_likes|pluralize }}
+ </span>
+ <span class="count">
+ {{ total_views }} view{{ total_views|pluralize }}
+ </span>
+ <a href="#" data-id="{{ image.id }}" data-action="{% if request.user in users_like %}un{% endif %}like"
+ class="like button">
+ {% if request.user not in users_like %}
+ Like
+ {% else %}
+ Unlike
+ {% endif %}
+ </a>
+ </div>
+ {{ image.description|linebreaks }}
+ </div>
+ <div class="image-likes">
+ {% for user in image.users_like.all %}
+ <div>
+ {% if user.profile.photo %}
+ <img src="{{ user.profile.photo.url }}">
+ {% endif %}
+ <p>{{ user.first_name }}</p>
+ </div>
+ {% empty %}
+ Nobody likes this image yet.
+ {% endfor %}
+ </div>
+ 
+
+
+
+
+{% endwith %}
+{% endblock %}
+
+{% comment %}
+  
+
+{% block domready %}
+
+ const url = '{% url "images:like" %}';
+ var options = {
+ method: 'POST',
+ headers: {'X-CSRFToken': csrftoken},
+ mode: 'same-origin'
+ }
+ document.querySelector('a.like')
+ .addEventListener('click', function(e){
+ e.preventDefault();
+ var likeButton = this;
+ // add request body
+ var formData = new FormData();
+ formData.append('id', likeButton.dataset.id);
+ formData.append('action', likeButton.dataset.action);
+ options['body'] = formData;
+ // send HTTP request
+ fetch(url, options)
+ .then(response => response.json())
+ .then(data => {
+ if (data['status'] === 'ok')
+ {
+ }
+ })
+ var previousAction = likeButton.dataset.action;
+ // toggle button text and data-action
+ var action = previousAction === 'like' ? 'unlike' : 'like';
+ likeButton.dataset.action = action;
+ likeButton.innerHTML = action;
+ // update like count
+
+ var likeCount = document.querySelector('span.count .total');
+ var totalLikes = parseInt(likeCount.innerHTML);
+ likeCount.innerHTML = previousAction === 'like' ? totalLikes + 1 :
+totalLikes - 1;
+ });
+{% endblock domready %}
+
+{% endcomment %}
+
+
+
+
+
+
+
+{% block domready %}
+  // عنوان endpoint (Django سيستبدل بتاج url)
+  const url = '{% url "images:like" %}';
+
+  // جلب العنصر
+  const likeButton = document.querySelector('a.like');
+  const likeCountEl = document.querySelector('span.count .total');
+
+  if (!likeButton) {
+    // ما في زرار في الصفحة → لا نفعل شيئًا
+    return;
+  }
+
+  likeButton.addEventListener('click', async function(e) {
+    e.preventDefault();
+
+    // نقرأ المعرف والحالة الحالية من attributes
+    const imageId = this.dataset.id;
+    const previousAction = this.dataset.action; // 'like' أو 'unlike'
+
+    // نمنع نقر إضافي حتى يعود الطلب
+    this.disabled = true;
+
+    // نجهز body كـ FormData
+    const formData = new FormData();
+    formData.append('id', imageId);
+    formData.append('action', previousAction);
+
+    try {
+      // نرسل الطلب وننتظر الرد
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken}, // csrftoken تم تعريفه في base.html
+        mode: 'same-origin',
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await res.json();
+
+      // نفترض السيرفر يرجع {'status': 'ok', 'likes': 5} عند النجاح
+      if (data.status === 'ok') {
+        // إذا رجع السيرفر عدد اللايكات استخدمه (أفضل) وإلا قم بالتبديل المحلي
+        if (typeof data.likes !== 'undefined') {
+          likeCountEl.textContent = String(data.likes);
+        } else {
+          // تحديث محلي (fallback)
+          const current = parseInt(likeCountEl.textContent, 10) || 0;
+          likeCountEl.textContent = previousAction === 'like' ? current + 1 : current - 1;
+        }
+
+        // تبديل النص و data-action بعد التأكيد
+        const newAction = previousAction === 'like' ? 'unlike' : 'like';
+        this.dataset.action = newAction;
+        this.textContent = newAction === 'like' ? 'Like' : 'Unlike';
+      } else {
+        // السيرفر رد بأنه غير ناجح - يمكنك إظهار رسالة للمستخدم
+        console.error('Server error response', data);
+      }
+    } catch (err) {
+      console.error('Request failed', err);
+      // خيار: إظهار alert أو رسالة صغيرة للمستخدم
+    } finally {
+      // إعادة تفعيل الزر سواء نجح أو فشل
+      this.disabled = false;
+    }
+  });
+{% endblock domready %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'account/css/dashboard.css'%}?v={{ now|date:"U"}}">  
+{% endblock extra_css %}
+
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<!-- هنا تبدأ المفاجأة -->
+<div style="margin-top:40px; border:2px dashed #ccc; padding:20px;">
+  {% comment %}
+    {% include "account/surprise.html" %}
+  {% endcomment %}
+</div>
+ <h2>What's happening</h2>
+ <div id="action-list">
+ {% for action in actions %}
+ {% include "actions/detail.html" %}
+ {% endfor %}
+ </div>
+<!-- هنا تنتهي المفاجأة -->
+ <h1>Dashboard</h1>
+  {% with total_images_created=request.user.images_created.count %}
+ <p>Welcome to your dashboard. You have bookmarked {{ total_images_created }} image{{ total_images_created|pluralize }}.</p>
+ {% endwith %}
+ <p>Drag the following button to your bookmarks toolbar to bookmark images
+from other websites → <a href="javascript:{% include "bookmarklet_launcher.js"%}" class="button">Bookmark it</a></p>
+ <p>You can also <a href="{% url "edit" %}">edit your profile</a> or <a
+href="{% url "password_change" %}">change your password</a>.</p>
+
+ <p>Welcome to your dashboard. You can <a href="{% url "edit" %}">edit your
+profile</a> or <a href="{% url "password_change" %}">change your password</a>.</p>
+{% endblock %}

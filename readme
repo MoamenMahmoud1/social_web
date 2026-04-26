@@ -1,0 +1,33 @@
+📦 المكتبات الأساسية
+
+Django → إطار العمل الرئيسي.
+
+django-extensions → عشان تشغل runserver_plus مع دعم HTTPS محلي.
+
+Werkzeug → بيشتغل مع django-extensions لتشغيل السيرفر المتطور.
+
+social-auth-app-django → مكتبة Python Social Auth لدعم تسجيل الدخول الاجتماعي (Google, Facebook…).
+
+requests → مكتبة أساسية للتعامل مع الـ HTTP requests (مطلوبة في بعض عمليات Social Auth).
+
+Pillow → لمعالجة الصور (لو بتستخدم صور في الـ Profile).
+pyOpenSSL
+
+python-dotenv (اختياري) → لتحميل متغيرات البيئة من .env (زي مفاتيح API).
+
+⚙️ متطلبات إضافية
+
+pyOpenSSL (أداة خارجية) → لإنشاء شهادة SSL محلية (cert.crt و key.pem).
+
+حساب Google Cloud Console → لتفعيل Google OAuth 2.0 وإضافة الـ redirect_uri.
+
+
+python manage.py runserver_plus --cert-file cert.crt
+
+pip install python-decouple
+
+
+
+
+https://localhost:8000/social-auth/complete/google-oauth2/
+https://127.0.0.1:8000/social-auth/complete/google-oauth2/
