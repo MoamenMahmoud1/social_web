@@ -12,26 +12,27 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import Csv , config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-invdssfsecure-5q8h08_9j+yb+v#)rqwg^ku*n(eerg99e#a_@oef^)h*pli8&0'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = config("SECRET_KEY")
 
-ALLOWED_HOSTS = ['mysite.com', 'localhost', '127.0.0.1' , 'b900b723cc8b.ngrok-free.app']
+DEBUG = False
 
-
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="localhost,127.0.0.1",
+    cast=Csv(),
+)
 # Application definition
 
 INSTALLED_APPS = [
-    'debug_toolbar',
     'easy_thumbnails',
     'images.apps.ImagesConfig',
     'django_extensions',    
@@ -48,7 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -169,7 +170,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 
-from decouple import config
+
 # ...
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('GOOGLE_OAUTH2_SECRET')
@@ -192,18 +193,8 @@ SOCIAL_AUTH_PIPELINE = [
  
 ]
 
-
-if DEBUG:
- import mimetypes
- mimetypes.add_type('application/javascript', '.js', True)
- mimetypes.add_type('text/css', '.css', True)
  
  
- 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.app",
-    "https://*.ngrok.app",
-]
 
 
 from django.urls import reverse_lazy
@@ -211,19 +202,6 @@ from django.urls import reverse_lazy
 ABSOLUTE_URL_OVERRIDES = {
  'auth.user': lambda u: reverse_lazy('user_detail', args=[u.username])
 }
-
-
-INTERNAL_IPS = [
- '127.0.0.1',
- 'mysite.com',
- 
-] 
-
-
-if DEBUG:
-    import mimetypes
-    mimetypes.add_type('application/javascript', '.js', True)
-    mimetypes.add_type('text/css', '.css', True)
 
 
 

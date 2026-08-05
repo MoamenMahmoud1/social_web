@@ -30,11 +30,12 @@ class Contact(models.Model):
         ]
         ordering = ['-created']
         
-        constraints =[ models.CheckConstraint(
-            check=~models.Q(user_from=models.F("user_to")),
-            name="prevent_self_follow"
-            
-        ) ]
+        constraints = [
+        models.CheckConstraint(
+            condition=~models.Q(user_from=models.F("user_to")),
+            name="prevent_self_follow",
+        ),
+    ]
         
         
     def __str__(self):
