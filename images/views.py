@@ -1,50 +1,57 @@
-from django.shortcuts import render , redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import ImageCreateForm
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from action.utils import create_action
-from django.db.models import Count
-from django.db.models import Case, IntegerField, When
-from django.db import transaction
-from .ranking import (
-    get_image_ranking,
-    increment_image_views,
-)
 from django.contrib.auth import get_user_model
-from django.db.models import Prefetch
-# Create your views here.
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db import transaction
+from django.db.models import Case, IntegerField, Prefetch, When
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
+
+from action.utils import create_action
+
+from .forms import ImageCreateForm
+from .models import Image
+from .ranking import get_image_ranking, increment_image_views
 
 
 @login_required
 def image_create(request):
-    if request.method == 'POST':
-        # form is sent
+    if request.method == "POST":
         form = ImageCreateForm(data=request.POST)
+
         if form.is_valid():
-            # form data is valid
-            cd = form.cleaned_data
-            new_image = form.save(commit=False)
-            # assign current user to the item
-            new_image.user = request.user
-            new_image.save()
-            create_action(request.user, 'bookmarked image', new_image)
-            messages.success(request, 'Image added successfully')
-            # redirect to new created item detail view
-            return redirect(new_image.get_absolute_url())
+            image = form.save(commit=False)
+            image.user = request.user
+            image.save()
+
+            create_action(
+                request.user,
+                "bookmarked image",
+                image,
+            )
+
+            messages.success(
+                request,
+                "Image added successfully",
+            )
+
+            return redirect(image.get_absolute_url())
+
     else:
-        # build form with data provided by the bookmarklet via GET
         form = ImageCreateForm(data=request.GET)
+
     return render(
-    request,
-    'images/image/create.html',
-    {'section': 'images', 'form': form}
+        request,
+        "images/image/create.html",
+        {
+            "section": "images",
+            "form": form,
+        },
     )
-    
-    
-from django.shortcuts import get_object_or_404
-from .models import Image
+
+
+@login_required
 def image_detail(request, id, slug):
     User = get_user_model()
 
@@ -98,12 +105,8 @@ def image_detail(request, id, slug):
             "user_has_liked": user_has_liked,
         },
     )
-    
-    
 
 
-
-    
 @login_required
 @require_POST
 def image_like(request):
@@ -156,74 +159,89 @@ def image_like(request):
             "total_likes": total_likes,
         }
     )
-    
-    
-    
-    
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.http import HttpResponse
-# ...
+
+
 @login_required
 def image_list(request):
-    images = (
-    Image.objects
-    .select_related("user")
-    .only(
-    "id",
-    "slug",
-    "title",
-    "image",
+    images_queryset = Image.objects.only(
+        "id",
+        "slug",
+        "title",
+        "image",
     )
-)
-    paginator = Paginator(images, 8)
-    page = request.GET.get('page')
-    images_only = request.GET.get('images_only')
+
+    paginator = Paginator(
+        images_queryset,
+        8,
+    )
+
+    page_number = request.GET.get("page")
+    images_only = request.GET.get("images_only")
+
     try:
-        images = paginator.page(page)
+        images = paginator.page(page_number)
+
     except PageNotAnInteger:
-        # If page is not an integer deliver the first page
         images = paginator.page(1)
+
     except EmptyPage:
         if images_only:
-        # If AJAX request and page out of range
-        # return an empty page
-            return HttpResponse('')
-        # If page out of range return last page of results
+            return HttpResponse("")
+
         images = paginator.page(paginator.num_pages)
-    if images_only:
-        return render(
-        request,
-        'images/image/list_images.html',
-        {'section': 'images', 'images': images}
-        )
+
+    template_name = (
+        "images/image/list_images.html"
+        if images_only
+        else "images/image/list.html"
+    )
 
     return render(
-    request,
-    'images/image/list.html',
-    {'section': 'images', 'images': images}
+        request,
+        template_name,
+        {
+            "section": "images",
+            "images": images,
+        },
     )
-    
-    
-
-
 
 
 @login_required
 def image_ranking(request):
     image_ranking_ids = get_image_ranking(limit=10)
-    
+
     if image_ranking_ids:
         preserved_order = Case(
             *[
-                When(pk=image_id, then=position)
-                for position, image_id in enumerate(image_ranking_ids)
+                When(
+                    pk=image_id,
+                    then=position,
+                )
+                for position, image_id
+                in enumerate(image_ranking_ids)
             ],
             output_field=IntegerField(),
         )
-    
-        most_viewed = Image.objects.filter(
-            id__in=image_ranking_ids
-        ).only('id' , 'lug' , 'title'
-        ).order_by(preserved_order)
+
+        most_viewed = (
+            Image.objects
+            .filter(id__in=image_ranking_ids)
+            .only(
+                "id",
+                "slug",
+                "title",
+            )
+            .order_by(preserved_order)
+        )
+
     else:
         most_viewed = Image.objects.none()
+
+    return render(
+        request,
+        "images/image/ranking.html",
+        {
+            "section": "images",
+            "most_viewed": most_viewed,
+        },
+    )
