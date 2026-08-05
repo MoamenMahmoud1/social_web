@@ -5,10 +5,15 @@ from .forms import ImageCreateForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from action.utils import create_action
-
+from django.db.models import Count
 from django.db.models import Case, IntegerField, When
-
-from .ranking import get_image_ranking
+from django.db import transaction
+from .ranking import (
+    get_image_ranking,
+    increment_image_views,
+)
+from django.contrib.auth import get_user_model
+from django.db.models import Prefetch
 # Create your views here.
 
 
@@ -41,18 +46,63 @@ def image_create(request):
 from django.shortcuts import get_object_or_404
 from .models import Image
 def image_detail(request, id, slug):
-    image = get_object_or_404(Image, id=id, slug=slug)
-    total_views = r.incr(f'image:{image.id}:views')
-    # increment image ranking by 1
-    r.zincrby('image_ranking', 1, image.id)
+    User = get_user_model()
+
+    liked_users_queryset = (
+        User.objects
+        .select_related("profile")
+        .only(
+            "id",
+            "first_name",
+            "profile__photo",
+        )
+    )
+
+    image = get_object_or_404(
+        Image.objects
+        .only(
+            "id",
+            "title",
+            "slug",
+            "image",
+            "description",
+        )
+        .prefetch_related(
+            Prefetch(
+                "users_like",
+                queryset=liked_users_queryset,
+                to_attr="liked_users",
+            )
+        ),
+        id=id,
+        slug=slug,
+    )
+
+    total_views = increment_image_views(image.id)
+
+    total_likes = len(image.liked_users)
+
+    user_has_liked = any(
+        user.id == request.user.id
+        for user in image.liked_users
+    )
+
     return render(
-    request,
-    'images/image/detail.html',
-    {'section': 'images', 'image': image , 'total_views': total_views}
+        request,
+        "images/image/detail.html",
+        {
+            "section": "images",
+            "image": image,
+            "total_views": total_views,
+            "total_likes": total_likes,
+            "user_has_liked": user_has_liked,
+        },
     )
     
     
-    
+
+
+
     
 @login_required
 @require_POST
@@ -62,28 +112,50 @@ def image_like(request):
 
     if not image_id or action not in {"like", "unlike"}:
         return JsonResponse(
-            {"status": "error", "message": "Invalid request"},
+            {
+                "status": "error",
+                "message": "Invalid request",
+            },
             status=400,
         )
 
-    image = get_object_or_404(Image, id=image_id)
+    image = get_object_or_404(
+        Image.objects.only("id"),
+        id=image_id,
+    )
 
-    if action == "like":
-        already_liked = image.users_like.filter(
-            id=request.user.id
-        ).exists()
+    likes_through_model = Image.users_like.through
 
-        if not already_liked:
-            image.users_like.add(request.user)
-            create_action(request.user, "likes", image)
+    with transaction.atomic():
+        if action == "like":
+            _, created = likes_through_model.objects.get_or_create(
+                image_id=image.id,
+                user_id=request.user.id,
+            )
 
-    else:
-        image.users_like.remove(request.user)
+            if created:
+                create_action(
+                    request.user,
+                    "likes",
+                    image,
+                )
 
-    return JsonResponse({
-        "status": "ok",
-        "total_likes": image.users_like.count(),
-    })
+        else:
+            likes_through_model.objects.filter(
+                image_id=image.id,
+                user_id=request.user.id,
+            ).delete()
+
+        total_likes = likes_through_model.objects.filter(
+            image_id=image.id,
+        ).count()
+
+    return JsonResponse(
+        {
+            "status": "ok",
+            "total_likes": total_likes,
+        }
+    )
     
     
     
@@ -93,7 +165,16 @@ from django.http import HttpResponse
 # ...
 @login_required
 def image_list(request):
-    images = Image.objects.all()
+    images = (
+    Image.objects
+    .select_related("user")
+    .only(
+    "id",
+    "slug",
+    "title",
+    "image",
+    )
+)
     paginator = Paginator(images, 8)
     page = request.GET.get('page')
     images_only = request.GET.get('images_only')
@@ -123,14 +204,7 @@ def image_list(request):
     )
     
     
-import redis
-from django.conf import settings
-# connect to redis
-r = redis.Redis(
- host=settings.REDIS_HOST,
- port=settings.REDIS_PORT,
- db=settings.REDIS_DB
-)
+
 
 
 
@@ -149,6 +223,7 @@ def image_ranking(request):
     
         most_viewed = Image.objects.filter(
             id__in=image_ranking_ids
+        ).only('id' , 'lug' , 'title'
         ).order_by(preserved_order)
     else:
         most_viewed = Image.objects.none()

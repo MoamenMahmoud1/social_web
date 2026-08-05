@@ -1,170 +1,149 @@
 {% extends "base.html" %}
-{% block title %}{{ image.title }}{% endblock %}
-{% block content %}
- <h1>{{ image.title }}</h1>
 {% load thumbnail %}
-<a href="{{ image.image.url }}">
-    <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
-</a>
- {% with total_likes=image.users_like.count users_like=image.users_like.all %}
- <div class="image-info">
- <div>
- <span class="count">
-    <span class="total">{{ total_likes }}</span>
-    like{{ total_likes|pluralize }}
- </span>
- <span class="count">
- {{ total_views }} view{{ total_views|pluralize }}
- </span>
- <a href="#" data-id="{{ image.id }}" data-action="{% if request.user in users_like %}un{% endif %}like"
- class="like button">
- {% if request.user not in users_like %}
- Like
- {% else %}
- Unlike
- {% endif %}
- </a>
- </div>
- {{ image.description|linebreaks }}
- </div>
- <div class="image-likes">
- {% for user in image.users_like.all %}
- <div>
- {% if user.profile.photo %}
- <img src="{{ user.profile.photo.url }}">
- {% endif %}
- <p>{{ user.first_name }}</p>
- </div>
- {% empty %}
- Nobody likes this image yet.
- {% endfor %}
- </div>
- 
 
-
-
-
-{% endwith %}
+{% block title %}
+    {{ image.title }}
 {% endblock %}
 
-{% comment %}
-  
+{% block content %}
+    <h1>{{ image.title }}</h1>
+
+    <a href="{{ image.image.url }}">
+        <img
+            src="{% thumbnail image.image 300x0 %}"
+            class="image-detail"
+            alt="{{ image.title }}"
+        >
+    </a>
+
+    <div class="image-info">
+        <div>
+            <span class="count">
+                <span class="total">{{ total_likes }}</span>
+                like{{ total_likes|pluralize }}
+            </span>
+
+            <span class="count">
+                {% if total_views is not None %}
+                    {{ total_views }}
+                    view{{ total_views|pluralize }}
+                {% endif %}
+            </span>
+
+            <a
+                href="#"
+                data-id="{{ image.id }}"
+                data-action="{% if user_has_liked %}unlike{% else %}like{% endif %}"
+                class="like button"
+            >
+                {% if user_has_liked %}
+                    Unlike
+                {% else %}
+                    Like
+                {% endif %}
+            </a>
+        </div>
+
+        {{ image.description|linebreaks }}
+    </div>
+
+    <div class="image-likes">
+        {% for user in image.liked_users %}
+            <div>
+                {% if user.profile.photo %}
+                    <img
+                        src="{{ user.profile.photo.url }}"
+                        alt="{{ user.first_name }}"
+                    >
+                {% endif %}
+
+                <p>{{ user.first_name }}</p>
+            </div>
+
+        {% empty %}
+            <p>Nobody likes this image yet.</p>
+        {% endfor %}
+    </div>
+{% endblock %}
+
 
 {% block domready %}
+    const url = '{% url "images:like" %}';
 
- const url = '{% url "images:like" %}';
- var options = {
- method: 'POST',
- headers: {'X-CSRFToken': csrftoken},
- mode: 'same-origin'
- }
- document.querySelector('a.like')
- .addEventListener('click', function(e){
- e.preventDefault();
- var likeButton = this;
- // add request body
- var formData = new FormData();
- formData.append('id', likeButton.dataset.id);
- formData.append('action', likeButton.dataset.action);
- options['body'] = formData;
- // send HTTP request
- fetch(url, options)
- .then(response => response.json())
- .then(data => {
- if (data['status'] === 'ok')
- {
- }
- })
- var previousAction = likeButton.dataset.action;
- // toggle button text and data-action
- var action = previousAction === 'like' ? 'unlike' : 'like';
- likeButton.dataset.action = action;
- likeButton.innerHTML = action;
- // update like count
+    const likeButton = document.querySelector('a.like');
+    const likeCountElement = document.querySelector(
+        'span.count .total'
+    );
 
- var likeCount = document.querySelector('span.count .total');
- var totalLikes = parseInt(likeCount.innerHTML);
- likeCount.innerHTML = previousAction === 'like' ? totalLikes + 1 :
-totalLikes - 1;
- });
-{% endblock domready %}
+    if (likeButton) {
+        likeButton.addEventListener(
+            'click',
+            async function(event) {
+                event.preventDefault();
 
-{% endcomment %}
+                const imageId = this.dataset.id;
+                const previousAction = this.dataset.action;
 
+                this.classList.add('disabled');
+                this.style.pointerEvents = 'none';
 
+                const formData = new FormData();
+                formData.append('id', imageId);
+                formData.append('action', previousAction);
 
+                try {
+                    const response = await fetch(
+                        url,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrftoken,
+                            },
+                            mode: 'same-origin',
+                            body: formData,
+                        }
+                    );
 
+                    if (!response.ok) {
+                        throw new Error(
+                            'Like request failed'
+                        );
+                    }
 
+                    const data = await response.json();
 
+                    if (data.status !== 'ok') {
+                        throw new Error(
+                            data.message || 'Server error'
+                        );
+                    }
 
-{% block domready %}
-  // عنوان endpoint (Django سيستبدل بتاج url)
-  const url = '{% url "images:like" %}';
+                    likeCountElement.textContent =
+                        String(data.total_likes);
 
-  // جلب العنصر
-  const likeButton = document.querySelector('a.like');
-  const likeCountEl = document.querySelector('span.count .total');
+                    const newAction =
+                        previousAction === 'like'
+                            ? 'unlike'
+                            : 'like';
 
-  if (!likeButton) {
-    // ما في زرار في الصفحة → لا نفعل شيئًا
-    return;
-  }
+                    this.dataset.action = newAction;
 
-  likeButton.addEventListener('click', async function(e) {
-    e.preventDefault();
+                    this.textContent =
+                        newAction === 'like'
+                            ? 'Like'
+                            : 'Unlike';
 
-    // نقرأ المعرف والحالة الحالية من attributes
-    const imageId = this.dataset.id;
-    const previousAction = this.dataset.action; // 'like' أو 'unlike'
+                } catch (error) {
+                    console.error(
+                        'Could not update like:',
+                        error
+                    );
 
-    // نمنع نقر إضافي حتى يعود الطلب
-    this.disabled = true;
-
-    // نجهز body كـ FormData
-    const formData = new FormData();
-    formData.append('id', imageId);
-    formData.append('action', previousAction);
-
-    try {
-      // نرسل الطلب وننتظر الرد
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrftoken}, // csrftoken تم تعريفه في base.html
-        mode: 'same-origin',
-        body: formData
-      });
-
-      if (!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await res.json();
-
-      // نفترض السيرفر يرجع {'status': 'ok', 'likes': 5} عند النجاح
-      if (data.status === 'ok') {
-        // إذا رجع السيرفر عدد اللايكات استخدمه (أفضل) وإلا قم بالتبديل المحلي
-        if (typeof data.likes !== 'undefined') {
-          likeCountEl.textContent = String(data.likes);
-        } else {
-          // تحديث محلي (fallback)
-          const current = parseInt(likeCountEl.textContent, 10) || 0;
-          likeCountEl.textContent = previousAction === 'like' ? current + 1 : current - 1;
-        }
-
-        // تبديل النص و data-action بعد التأكيد
-        const newAction = previousAction === 'like' ? 'unlike' : 'like';
-        this.dataset.action = newAction;
-        this.textContent = newAction === 'like' ? 'Like' : 'Unlike';
-      } else {
-        // السيرفر رد بأنه غير ناجح - يمكنك إظهار رسالة للمستخدم
-        console.error('Server error response', data);
-      }
-    } catch (err) {
-      console.error('Request failed', err);
-      // خيار: إظهار alert أو رسالة صغيرة للمستخدم
-    } finally {
-      // إعادة تفعيل الزر سواء نجح أو فشل
-      this.disabled = false;
+                } finally {
+                    this.classList.remove('disabled');
+                    this.style.pointerEvents = '';
+                }
+            }
+        );
     }
-  });
-{% endblock domready %}
+{% endblock %}

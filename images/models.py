@@ -19,7 +19,7 @@ class Image(models.Model):
     
     
     users_like = models.ManyToManyField(settings.AUTH_USER_MODEL , related_name="image_like" , blank=True)
-    total_likes = models.PositiveIntegerField(default=0)
+   
     
     def get_absolute_url(self):
         return reverse("images:detail", args=[self.id , self.slug])
@@ -29,7 +29,7 @@ class Image(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["-created"]),
-            models.Index(fields=['-total_likes']),
+            
         ]
         ordering = ["-created"]
         
