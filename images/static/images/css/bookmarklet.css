@@ -1,0 +1,133 @@
+#bookmarklet {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+    padding: 24px;
+
+    overflow: auto;
+
+    background: rgba(15, 23, 42, 0.96);
+    color: #ffffff;
+
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+#bookmarklet[hidden] {
+    display: none;
+}
+
+#bookmarklet *,
+#bookmarklet *::before,
+#bookmarklet *::after {
+    box-sizing: border-box;
+}
+
+#bookmarklet h1 {
+    margin: 0 50px 24px 0;
+
+    color: #ffffff;
+    font-size: 28px;
+    line-height: 1.3;
+}
+
+#bookmarklet-close {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+
+    width: 44px;
+    height: 44px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: #ffffff;
+    color: #111827;
+
+    font-size: 32px;
+    line-height: 44px;
+    text-align: center;
+
+    cursor: pointer;
+}
+
+#bookmarklet .images {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(180px, 1fr)
+    );
+    gap: 18px;
+
+    width: 100%;
+}
+
+#bookmarklet .images img {
+    display: block;
+
+    width: 100%;
+    height: 180px;
+    max-width: 100%;
+
+    border: 3px solid transparent;
+    border-radius: 10px;
+
+    object-fit: cover;
+
+    background: #ffffff;
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease;
+}
+
+#bookmarklet .images img:hover,
+#bookmarklet .images img:focus {
+    border-color: #ffffff;
+    outline: none;
+    transform: scale(1.03);
+}
+
+#bookmarklet .images p {
+    grid-column: 1 / -1;
+
+    padding: 20px;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #111827;
+
+    font-size: 18px;
+}
+
+@media (max-width: 600px) {
+    #bookmarklet {
+        padding: 16px;
+    }
+
+    #bookmarklet h1 {
+        font-size: 22px;
+    }
+
+    #bookmarklet .images {
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(130px, 1fr)
+        );
+        gap: 12px;
+    }
+
+    #bookmarklet .images img {
+        height: 140px;
+    }
+}

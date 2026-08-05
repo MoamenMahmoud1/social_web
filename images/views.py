@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.db import transaction
 from django.db.models import Case, IntegerField, Prefetch, When
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,6 +10,7 @@ from django.views.decorators.http import require_POST
 from action.utils import create_action
 
 from .forms import ImageCreateForm
+from .like_services import change_image_like
 from .models import Image
 from .ranking import get_image_ranking, increment_image_views
 
@@ -18,10 +18,15 @@ from .ranking import get_image_ranking, increment_image_views
 @login_required
 def image_create(request):
     if request.method == "POST":
-        form = ImageCreateForm(data=request.POST)
+        form = ImageCreateForm(
+            data=request.POST,
+        )
 
         if form.is_valid():
-            image = form.save(commit=False)
+            image = form.save(
+                commit=False,
+            )
+
             image.user = request.user
             image.save()
 
@@ -36,10 +41,14 @@ def image_create(request):
                 "Image added successfully",
             )
 
-            return redirect(image.get_absolute_url())
+            return redirect(
+                image.get_absolute_url()
+            )
 
     else:
-        form = ImageCreateForm(data=request.GET)
+        form = ImageCreateForm(
+            data=request.GET,
+        )
 
     return render(
         request,
@@ -73,6 +82,7 @@ def image_detail(request, id, slug):
             "slug",
             "image",
             "description",
+            "total_likes",
         )
         .prefetch_related(
             Prefetch(
@@ -85,9 +95,9 @@ def image_detail(request, id, slug):
         slug=slug,
     )
 
-    total_views = increment_image_views(image.id)
-
-    total_likes = len(image.liked_users)
+    total_views = increment_image_views(
+        image.id
+    )
 
     user_has_liked = any(
         user.id == request.user.id
@@ -101,7 +111,7 @@ def image_detail(request, id, slug):
             "section": "images",
             "image": image,
             "total_views": total_views,
-            "total_likes": total_likes,
+            "total_likes": image.total_likes,
             "user_has_liked": user_has_liked,
         },
     )
@@ -113,7 +123,10 @@ def image_like(request):
     image_id = request.POST.get("id")
     action = request.POST.get("action")
 
-    if not image_id or action not in {"like", "unlike"}:
+    if (
+        not image_id
+        or action not in {"like", "unlike"}
+    ):
         return JsonResponse(
             {
                 "status": "error",
@@ -123,40 +136,23 @@ def image_like(request):
         )
 
     image = get_object_or_404(
-        Image.objects.only("id"),
+        Image.objects.only(
+            "id",
+        ),
         id=image_id,
     )
 
-    likes_through_model = Image.users_like.through
-
-    with transaction.atomic():
-        if action == "like":
-            _, created = likes_through_model.objects.get_or_create(
-                image_id=image.id,
-                user_id=request.user.id,
-            )
-
-            if created:
-                create_action(
-                    request.user,
-                    "likes",
-                    image,
-                )
-
-        else:
-            likes_through_model.objects.filter(
-                image_id=image.id,
-                user_id=request.user.id,
-            ).delete()
-
-        total_likes = likes_through_model.objects.filter(
-            image_id=image.id,
-        ).count()
+    result = change_image_like(
+        image=image,
+        user=request.user,
+        action=action,
+    )
 
     return JsonResponse(
         {
             "status": "ok",
-            "total_likes": total_likes,
+            "action": result.action,
+            "changed": result.changed,
         }
     )
 
@@ -168,6 +164,7 @@ def image_list(request):
         "slug",
         "title",
         "image",
+        "total_likes",
     )
 
     paginator = Paginator(
@@ -179,7 +176,9 @@ def image_list(request):
     images_only = request.GET.get("images_only")
 
     try:
-        images = paginator.page(page_number)
+        images = paginator.page(
+            page_number
+        )
 
     except PageNotAnInteger:
         images = paginator.page(1)
@@ -188,7 +187,9 @@ def image_list(request):
         if images_only:
             return HttpResponse("")
 
-        images = paginator.page(paginator.num_pages)
+        images = paginator.page(
+            paginator.num_pages
+        )
 
     template_name = (
         "images/image/list_images.html"
@@ -208,7 +209,9 @@ def image_list(request):
 
 @login_required
 def image_ranking(request):
-    image_ranking_ids = get_image_ranking(limit=10)
+    image_ranking_ids = get_image_ranking(
+        limit=10
+    )
 
     if image_ranking_ids:
         preserved_order = Case(
@@ -225,13 +228,17 @@ def image_ranking(request):
 
         most_viewed = (
             Image.objects
-            .filter(id__in=image_ranking_ids)
+            .filter(
+                id__in=image_ranking_ids
+            )
             .only(
                 "id",
                 "slug",
                 "title",
             )
-            .order_by(preserved_order)
+            .order_by(
+                preserved_order
+            )
         )
 
     else:

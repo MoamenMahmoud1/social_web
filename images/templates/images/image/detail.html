@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load thumbnail %}
 
 {% block title %}
@@ -6,144 +7,107 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ image.title }}</h1>
+    <article class="image-detail-page">
+        <h1>{{ image.title }}</h1>
 
-    <a href="{{ image.image.url }}">
-        <img
-            src="{% thumbnail image.image 300x0 %}"
-            class="image-detail"
-            alt="{{ image.title }}"
+        <a
+            href="{{ image.image.url }}"
+            class="image-detail-link"
         >
-    </a>
-
-    <div class="image-info">
-        <div>
-            <span class="count">
-                <span class="total">{{ total_likes }}</span>
-                like{{ total_likes|pluralize }}
-            </span>
-
-            <span class="count">
-                {% if total_views is not None %}
-                    {{ total_views }}
-                    view{{ total_views|pluralize }}
-                {% endif %}
-            </span>
-
-            <a
-                href="#"
-                data-id="{{ image.id }}"
-                data-action="{% if user_has_liked %}unlike{% else %}like{% endif %}"
-                class="like button"
+            <img
+                src="{% thumbnail image.image 300x0 %}"
+                class="image-detail"
+                alt="{{ image.title }}"
             >
-                {% if user_has_liked %}
-                    Unlike
-                {% else %}
-                    Like
-                {% endif %}
-            </a>
-        </div>
+        </a>
 
-        {{ image.description|linebreaks }}
-    </div>
+        <div class="image-info">
+            <div class="image-actions">
+                <span class="count">
+                    <span data-like-count>
+                        {{ total_likes }}
+                    </span>
 
-    <div class="image-likes">
-        {% for user in image.liked_users %}
-            <div>
-                {% if user.profile.photo %}
-                    <img
-                        src="{{ user.profile.photo.url }}"
-                        alt="{{ user.first_name }}"
-                    >
-                {% endif %}
+                    <span data-like-label>
+                        like{{ total_likes|pluralize }}
+                    </span>
+                </span>
 
-                <p>{{ user.first_name }}</p>
+                <span class="count">
+                    {% if total_views is not None %}
+                        {{ total_views }}
+                        view{{ total_views|pluralize }}
+                    {% endif %}
+                </span>
+
+                <button
+                    type="button"
+                    class="like button"
+                    data-like-button
+                    data-image-id="{{ image.id }}"
+                    data-like-url="{% url 'images:like' %}"
+                    data-action="{% if user_has_liked %}unlike{% else %}like{% endif %}"
+                    aria-pressed="{% if user_has_liked %}true{% else %}false{% endif %}"
+                >
+                    <span data-like-button-text>
+                        {% if user_has_liked %}
+                            Unlike
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </span>
+                </button>
+
+                <span
+                    data-like-error
+                    role="alert"
+                    hidden
+                >
+                    The like could not be updated.
+                </span>
             </div>
 
-        {% empty %}
-            <p>Nobody likes this image yet.</p>
-        {% endfor %}
-    </div>
+            <div class="image-description">
+                {{ image.description|linebreaks }}
+            </div>
+        </div>
+
+        <section
+            class="image-likes"
+            aria-labelledby="liked-users-title"
+        >
+            <h2 id="liked-users-title">
+                People who like this image
+            </h2>
+
+            <div class="liked-users-list">
+                {% for user in image.liked_users %}
+                    <div class="liked-user">
+                        {% if user.profile.photo %}
+                            <img
+                                src="{{ user.profile.photo.url }}"
+                                alt="{{ user.first_name|default:user.username }}"
+                            >
+                        {% endif %}
+
+                        <p>
+                            {{ user.first_name|default:user.username }}
+                        </p>
+                    </div>
+
+                {% empty %}
+                    <p data-empty-likes>
+                        Nobody likes this image yet.
+                    </p>
+                {% endfor %}
+            </div>
+        </section>
+    </article>
 {% endblock %}
 
-
-{% block domready %}
-    const url = '{% url "images:like" %}';
-
-    const likeButton = document.querySelector('a.like');
-    const likeCountElement = document.querySelector(
-        'span.count .total'
-    );
-
-    if (likeButton) {
-        likeButton.addEventListener(
-            'click',
-            async function(event) {
-                event.preventDefault();
-
-                const imageId = this.dataset.id;
-                const previousAction = this.dataset.action;
-
-                this.classList.add('disabled');
-                this.style.pointerEvents = 'none';
-
-                const formData = new FormData();
-                formData.append('id', imageId);
-                formData.append('action', previousAction);
-
-                try {
-                    const response = await fetch(
-                        url,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': csrftoken,
-                            },
-                            mode: 'same-origin',
-                            body: formData,
-                        }
-                    );
-
-                    if (!response.ok) {
-                        throw new Error(
-                            'Like request failed'
-                        );
-                    }
-
-                    const data = await response.json();
-
-                    if (data.status !== 'ok') {
-                        throw new Error(
-                            data.message || 'Server error'
-                        );
-                    }
-
-                    likeCountElement.textContent =
-                        String(data.total_likes);
-
-                    const newAction =
-                        previousAction === 'like'
-                            ? 'unlike'
-                            : 'like';
-
-                    this.dataset.action = newAction;
-
-                    this.textContent =
-                        newAction === 'like'
-                            ? 'Like'
-                            : 'Unlike';
-
-                } catch (error) {
-                    console.error(
-                        'Could not update like:',
-                        error
-                    );
-
-                } finally {
-                    this.classList.remove('disabled');
-                    this.style.pointerEvents = '';
-                }
-            }
-        );
-    }
+{% block extra_js %}
+    <script
+        src="{% static 'images/js/image-like.js' %}?v=1.0"
+        defer
+    ></script>
 {% endblock %}
