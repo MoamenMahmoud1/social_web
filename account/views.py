@@ -119,25 +119,49 @@ def user_detail(request , username):
 @require_POST
 @login_required
 def user_follow(request):
-    user_id = request.POST.get('id')
-    action = request.POST.get('action')
-    
-    
-    if user_id and action:
-        user = User.objects.get(id=user_id)
-        try:
-            if action == "follow":
-                Contact.objects.get_or_create(user_from=request.user , user_to=user)
-                create_action(request.user, 'is following', user)
-                
-            else:
-                Contact.objects.filter(user_from=request.user , user_to=user).delete()
-                
-                
-            return JsonResponse({'status':'ok'})
-        
-        
-        except User.DoesNotExist:
-            return JsonResponse({'status':'error'})
-        
-    return JsonResponse({"status":"error"})
+    user_id = request.POST.get("id")
+    action = request.POST.get("action")
+
+    if not user_id or action not in {"follow", "unfollow"}:
+        return JsonResponse(
+            {"status": "error", "message": "Invalid request"},
+            status=400,
+        )
+
+    try:
+        user = User.objects.get(
+            id=user_id,
+            is_active=True,
+        )
+    except User.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "message": "User not found"},
+            status=404,
+        )
+
+    if user == request.user:
+        return JsonResponse(
+            {"status": "error", "message": "You cannot follow yourself"},
+            status=400,
+        )
+
+    if action == "follow":
+        _, created = Contact.objects.get_or_create(
+            user_from=request.user,
+            user_to=user,
+        )
+
+        if created:
+            create_action(
+                request.user,
+                "is following",
+                user,
+            )
+
+    else:
+        Contact.objects.filter(
+            user_from=request.user,
+            user_to=user,
+        ).delete()
+
+    return JsonResponse({"status": "ok"})

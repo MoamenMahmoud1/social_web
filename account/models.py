@@ -31,13 +31,16 @@ class Contact(models.Model):
         ordering = ['-created']
         
         constraints = [
-        models.CheckConstraint(
-            condition=~models.Q(user_from=models.F("user_to")),
-            name="prevent_self_follow",
-        ),
-    ]
-        
-        
+            models.CheckConstraint(
+                condition=~models.Q(user_from=models.F("user_to")),
+                name="prevent_self_follow",
+            ),
+            models.UniqueConstraint(
+                fields=["user_from", "user_to"],
+                name="unique_user_follow",
+            ),
+            ]       
+
     def __str__(self):
         return f'{self.user_from} follows {self.user_to}'
     

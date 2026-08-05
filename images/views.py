@@ -5,6 +5,10 @@ from .forms import ImageCreateForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from action.utils import create_action
+
+from django.db.models import Case, IntegerField, When
+
+from .ranking import get_image_ranking
 # Create your views here.
 
 
@@ -53,27 +57,33 @@ def image_detail(request, id, slug):
 @login_required
 @require_POST
 def image_like(request):
-    
-    image_id = request.POST.get('id')
-    action = request.POST.get('action')
-    
-    if image_id and action:
-        
-        try:
-            
-            image = Image.objects.get(id=image_id)
-            if action == 'like':
-                image.users_like.add(request.user)
-                create_action(request.user, 'likes', image)
-            else:
-                image.users_like.remove(request.user)
-            return JsonResponse({'status':'ok'})
-        except Image.DoesNotExist:
-            pass
-    return JsonResponse({'status':'error'})
+    image_id = request.POST.get("id")
+    action = request.POST.get("action")
 
-    
-    
+    if not image_id or action not in {"like", "unlike"}:
+        return JsonResponse(
+            {"status": "error", "message": "Invalid request"},
+            status=400,
+        )
+
+    image = get_object_or_404(Image, id=image_id)
+
+    if action == "like":
+        already_liked = image.users_like.filter(
+            id=request.user.id
+        ).exists()
+
+        if not already_liked:
+            image.users_like.add(request.user)
+            create_action(request.user, "likes", image)
+
+    else:
+        image.users_like.remove(request.user)
+
+    return JsonResponse({
+        "status": "ok",
+        "total_likes": image.users_like.count(),
+    })
     
     
     
@@ -126,22 +136,19 @@ r = redis.Redis(
 
 @login_required
 def image_ranking(request):
- # get image ranking dictionary
- image_ranking = r.zrange(
- 'image_ranking', 0, -1,
- desc=True
- )[:10]
- image_ranking_ids = [int(id) for id in image_ranking]
- # get most viewed images
- most_viewed = list(
- Image.objects.filter(
- id__in=image_ranking_ids
- )
- )
- most_viewed.sort(key=lambda x: image_ranking_ids.index(x.id))
- return render(
-
- request,
- 'images/image/ranking.html',
- {'section': 'images', 'most_viewed': most_viewed}
- )
+    image_ranking_ids = get_image_ranking(limit=10)
+    
+    if image_ranking_ids:
+        preserved_order = Case(
+            *[
+                When(pk=image_id, then=position)
+                for position, image_id in enumerate(image_ranking_ids)
+            ],
+            output_field=IntegerField(),
+        )
+    
+        most_viewed = Image.objects.filter(
+            id__in=image_ranking_ids
+        ).order_by(preserved_order)
+    else:
+        most_viewed = Image.objects.none()
