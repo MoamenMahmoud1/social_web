@@ -32,9 +32,12 @@
  <div class="social">
  <ul>
  <li class="google">
- <a href="{% url "social:begin" "google-oauth2" %}">
- Sign in with Google
- </a>
+<form method="post" action="{% url 'social:begin' 'google-oauth2' %}">
+    {% csrf_token %}
+    <button type="submit">
+        Login with Google
+    </button>
+</form>
  </li>
  </ul>
  </div>
