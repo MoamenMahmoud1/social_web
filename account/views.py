@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -24,46 +25,32 @@ User = get_user_model()
 
 @login_required
 def dashboard(request):
-    following_ids = list(
-        request.user.following.values_list(
-            "id",
-            flat=True,
+    following_ids = request.user.following.values_list(
+        "id",
+        flat=True,
+    )
+
+    actions = (
+        Action.objects
+        .exclude(user=request.user)
+        .select_related(
+            "user",
+            "user__profile",
         )
+        .prefetch_related("target")
+        .order_by("-created")
     )
 
-    actions = Action.objects.exclude(
-        user_id=request.user.id,
-    )
-
-    if following_ids:
+    if request.user.following.exists():
         actions = actions.filter(
             user_id__in=following_ids,
         )
 
-    actions = (
-        actions
-        .select_related(
-            "user",
-            "user__profile",
-            "target_ct",
-        )
-        .prefetch_related("target")
-        .only(
-            "id",
-            "verb",
-            "created",
-            "user_id",
-            "target_ct_id",
-            "target_id",
-            "user__id",
-            "user__username",
-            "user__first_name",
-            "user__last_name",
-            "user__profile__photo",
-        )[:10]
-    )
+    actions = actions[:10]
 
-    total_images_created = request.user.images_created.count()
+    total_images_created = (
+        request.user.images_created.count()
+    )
 
     return render(
         request,
@@ -74,7 +61,6 @@ def dashboard(request):
             "total_images_created": total_images_created,
         },
     )
-
 
 def register(request):
     if request.method == "POST":
@@ -94,9 +80,6 @@ def register(request):
 
                 new_user.save()
 
-                Profile.objects.create(
-                    user=new_user,
-                )
 
                 create_action(
                     new_user,
@@ -178,9 +161,10 @@ def edit(request):
 
 
 
+
 @login_required
 def user_list(request):
-    users = (
+    users_queryset = (
         User.objects
         .filter(is_active=True)
         .select_related("profile")
@@ -191,7 +175,16 @@ def user_list(request):
             "last_name",
             "profile__photo",
         )
-        .order_by("first_name", "last_name", "username")
+        .order_by("username")
+    )
+
+    paginator = Paginator(
+        users_queryset,
+        20,
+    )
+
+    users = paginator.get_page(
+        request.GET.get("page"),
     )
 
     return render(
@@ -204,37 +197,31 @@ def user_list(request):
     )
 
 
+
+
+
 @login_required
 def user_detail(request, username):
-    following_exists = Contact.objects.filter(
-        user_from_id=request.user.id,
-        user_to_id=OuterRef("pk"),
-    )
-
     user = get_object_or_404(
         User.objects
         .filter(is_active=True)
         .select_related("profile")
         .annotate(
             total_followers=Count(
-                "rel_to_set",
+                "followers",
                 distinct=True,
             ),
-            user_is_following=Exists(
-                following_exists,
+            is_followed_by_request_user=Exists(
+                Contact.objects.filter(
+                    user_from=request.user,
+                    user_to=OuterRef("pk"),
+                )
             ),
-        )
-        .only(
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "profile__photo",
         ),
         username=username,
     )
 
-    images = (
+    images_queryset = (
         Image.objects
         .filter(user_id=user.id)
         .only(
@@ -242,7 +229,18 @@ def user_detail(request, username):
             "slug",
             "title",
             "image",
+            "created",
         )
+        .order_by("-created")
+    )
+
+    paginator = Paginator(
+        images_queryset,
+        12,
+    )
+
+    images = paginator.get_page(
+        request.GET.get("page"),
     )
 
     return render(
@@ -252,10 +250,11 @@ def user_detail(request, username):
             "section": "people",
             "user": user,
             "images": images,
-            "total_followers": user.total_followers,
-            "user_is_following": user.user_is_following,
         },
     )
+
+
+
 
 
 @login_required
@@ -271,7 +270,7 @@ def user_follow(request):
         return JsonResponse(
             {
                 "status": "error",
-                "message": "Invalid request",
+                "message": "Invalid request.",
             },
             status=400,
         )
@@ -285,21 +284,25 @@ def user_follow(request):
         is_active=True,
     )
 
-    if user.id == request.user.id:
+    if user.pk == request.user.pk:
         return JsonResponse(
             {
                 "status": "error",
-                "message": "You cannot follow yourself",
+                "message": "You cannot follow yourself.",
             },
             status=400,
         )
 
+    changed = False
+
     with transaction.atomic():
         if action == "follow":
             _, created = Contact.objects.get_or_create(
-                user_from_id=request.user.id,
-                user_to_id=user.id,
+                user_from_id=request.user.pk,
+                user_to_id=user.pk,
             )
+
+            changed = created
 
             if created:
                 create_action(
@@ -309,18 +312,27 @@ def user_follow(request):
                 )
 
         else:
-            Contact.objects.filter(
-                user_from_id=request.user.id,
-                user_to_id=user.id,
+            deleted_count, _ = Contact.objects.filter(
+                user_from_id=request.user.pk,
+                user_to_id=user.pk,
             ).delete()
 
+            changed = deleted_count > 0
+
         total_followers = Contact.objects.filter(
-            user_to_id=user.id,
+            user_to_id=user.pk,
         ).count()
 
     return JsonResponse(
         {
             "status": "ok",
+            "action": action,
+            "changed": changed,
             "total_followers": total_followers,
         }
     )
+
+
+
+
+

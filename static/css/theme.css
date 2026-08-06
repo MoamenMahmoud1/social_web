@@ -1,0 +1,170 @@
+:root {
+    /* Layout */
+    --content-max-width: 1440px;
+    --page-gutter: clamp(0.9rem, 3vw, 2rem);
+    --page-content-padding-top: clamp(1.25rem, 3vw, 2.5rem);
+    --page-content-padding-top-mobile: 1rem;
+    --page-content-padding-bottom: clamp(2rem, 5vw, 4.5rem);
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+
+    /* Radius */
+    --radius-sm: 0.7rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.35rem;
+    --radius-pill: 999px;
+
+    /* Motion */
+    --transition-fast: 150ms ease;
+    --transition-normal: 220ms ease;
+
+    /* Light theme brand palette */
+    --evergreen-500: #2f6654;
+    --evergreen-600: #285847;
+    --evergreen-700: #214a3c;
+
+    /* Dark theme brand palette */
+    --violet-400: #9d91ff;
+    --violet-500: #8b7cf6;
+    --violet-600: #7163d9;
+
+    /* Secondary accent palette */
+    --cyan-400: #66c6d6;
+    --cyan-500: #4fb6c8;
+    --cyan-600: #3b95a5;
+
+    /* Status colors */
+    --status-success: #39735b;
+    --status-warning: #ad7a38;
+    --status-danger: #a95149;
+    --status-info: #527485;
+}
+
+:root,
+[data-bs-theme="light"] {
+    color-scheme: light;
+
+    --brand-primary: var(--evergreen-500);
+    --brand-hover: var(--evergreen-600);
+    --brand-active: var(--evergreen-700);
+    --brand-soft: #d7e5de;
+
+    --accent-primary: #b87549;
+    --accent-soft: #ead1bf;
+
+    --page-background: #ebe4d8;
+    --surface-primary: #f4eee4;
+    --surface-secondary: #e7ded1;
+    --surface-elevated: #f7f0e6;
+    --surface-hover: #dfe7e1;
+
+    --text-primary: #202622;
+    --text-secondary: #59635d;
+    --text-muted: #747e77;
+    --text-on-brand: #f1f5f2;
+
+    --border-subtle: #d2c8ba;
+    --border-default: #c3b8a8;
+    --border-strong: #a99d8b;
+
+    --navbar-background: rgba(235, 228, 216, 0.92);
+    --navbar-border: rgba(169, 157, 139, 0.55);
+
+    --shadow-small:
+        0 5px 15px rgba(55, 44, 33, 0.07);
+
+    --shadow-medium:
+        0 14px 34px rgba(55, 44, 33, 0.11);
+
+    --focus-ring:
+        0 0 0 0.25rem rgba(47, 102, 84, 0.25);
+
+    --bs-body-bg: var(--page-background);
+    --bs-body-color: var(--text-primary);
+    --bs-border-color: var(--border-default);
+    --bs-link-color: var(--brand-primary);
+    --bs-link-hover-color: var(--brand-hover);
+}
+
+[data-bs-theme="dark"] {
+    color-scheme: dark;
+
+    --brand-primary: var(--violet-500);
+    --brand-hover: var(--violet-400);
+    --brand-active: var(--violet-600);
+    --brand-soft: #2d2948;
+
+    --accent-primary: var(--cyan-500);
+    --accent-soft: #203b40;
+
+    --page-background: #15151a;
+    --surface-primary: #1e1e25;
+    --surface-secondary: #272730;
+    --surface-elevated: #30303a;
+    --surface-hover: #363642;
+
+    --text-primary: #f0eef8;
+    --text-secondary: #c1becd;
+    --text-muted: #9793a3;
+    --text-on-brand: #ffffff;
+
+    --border-subtle: #32323c;
+    --border-default: #42424d;
+    --border-strong: #565663;
+
+    --navbar-background: rgba(10, 10, 14, 0.94);
+    --navbar-border: rgba(255, 255, 255, 0.08);
+
+    --shadow-small:
+        0 7px 18px rgba(0, 0, 0, 0.3);
+
+    --shadow-medium:
+        0 17px 42px rgba(0, 0, 0, 0.4);
+
+    --focus-ring:
+        0 0 0 0.25rem rgba(139, 124, 246, 0.28);
+
+    --status-success: #63b38c;
+    --status-warning: #d4a45f;
+    --status-danger: #df7e79;
+    --status-info: #66b8ce;
+
+    --bs-body-bg: var(--page-background);
+    --bs-body-color: var(--text-primary);
+    --bs-border-color: var(--border-default);
+    --bs-link-color: var(--brand-primary);
+    --bs-link-hover-color: var(--brand-hover);
+}
+
+[data-bs-theme="light"] body {
+    background:
+        radial-gradient(
+            circle at 10% 0%,
+            rgba(47, 102, 84, 0.07),
+            transparent 30rem
+        ),
+        var(--page-background);
+}
+
+[data-bs-theme="dark"] body {
+    background:
+        radial-gradient(
+            circle at 12% 0%,
+            rgba(139, 124, 246, 0.1),
+            transparent 28rem
+        ),
+        radial-gradient(
+            circle at 88% 12%,
+            rgba(79, 182, 200, 0.06),
+            transparent 25rem
+        ),
+        var(--page-background);
+}
+

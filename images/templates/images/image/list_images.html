@@ -1,28 +1,33 @@
 {% load thumbnail %}
 
 {% for image in images %}
-    <div class="image">
-        <a href="{{ image.get_absolute_url }}">
-            {% thumbnail image.image 300x300 crop="smart" as im %}
+    <article class="image-card">
+        <a
+            href="{{ image.get_absolute_url }}"
+            class="image-card-preview"
+        >
+            {% thumbnail image.image "300x300" crop="smart" as thumbnail_image %}
 
             <img
-                src="{{ im.url }}"
+                src="{{ thumbnail_image.url }}"
                 alt="{{ image.title }}"
-                width="{{ im.width }}"
-                height="{{ im.height }}"
+                width="{{ thumbnail_image.width }}"
+                height="{{ thumbnail_image.height }}"
                 loading="lazy"
             >
         </a>
 
-        <div class="info">
-            <a
-                href="{{ image.get_absolute_url }}"
-                class="title"
-            >
-                {{ image.title }}
-            </a>
+        <div class="image-card-content">
+            <h3 class="image-card-title">
+                <a href="{{ image.get_absolute_url }}">
+                    {{ image.title }}
+                </a>
+            </h3>
         </div>
-    </div>
+    </article>
 {% empty %}
-    <p>No images found.</p>
+    <div class="image-list-empty">
+        <p>No images found.</p>
+    </div>
 {% endfor %}
+

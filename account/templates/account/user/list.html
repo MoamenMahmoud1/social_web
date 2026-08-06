@@ -1,20 +1,67 @@
 {% extends "base.html" %}
-{% load thumbnail %}
-{% block title %}People{% endblock %}
-{% block content %}
- <h1>People</h1>
- <div id="people-list">
- {% for user in users %}
- <div class="user">
- <a href="{{ user.get_absolute_url }}">
- <img src="{% thumbnail user.profile.photo 180x180 %}">
- </a>
- <div class="info">
- <a href="{{ user.get_absolute_url }}" class="title">
- {{ user.get_full_name }}
- </a>
- </div>
- </div>
- {% endfor %}
- </div>
+{% load static thumbnail %}
+
+{% block title %}
+    People
 {% endblock %}
+
+{% block extra_css %}
+    <link
+        href="{% static 'account/css/user-list.css' %}?v=1.0"
+        rel="stylesheet"
+    >
+{% endblock %}
+
+{% block content %}
+    <section class="people-page">
+        <header class="people-page-header">
+            <h1 class="people-page-title">
+                People
+            </h1>
+        </header>
+
+        {% if users %}
+            <div class="people-list">
+                {% for person in users %}
+                    <a
+                        href="{{ person.get_absolute_url }}"
+                        class="person-card"
+                    >
+                        <div class="person-avatar">
+                            {% if person.profile.photo %}
+                                {% thumbnail person.profile.photo "160x160" crop="center" as avatar %}
+                                    <img
+                                        src="{{ avatar.url }}"
+                                        alt="{{ person.get_full_name|default:person.username }}"
+                                        width="{{ avatar.width }}"
+                                        height="{{ avatar.height }}"
+                                        loading="lazy"
+                                    >
+                                
+                            {% else %}
+                                <span aria-hidden="true">
+                                    {{ person.username|first|upper }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="person-details">
+                            <h2 class="person-name">
+                                {{ person.get_full_name|default:person.username }}
+                            </h2>
+
+                            <p class="person-username">
+                                @{{ person.username }}
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="people-empty">
+                No people were found.
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
+

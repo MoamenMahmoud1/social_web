@@ -1,0 +1,137 @@
+.image-feed {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.image-feed-header {
+    max-width: 46rem;
+}
+
+.image-feed-eyebrow {
+    margin: 0 0 var(--space-2);
+
+    color: var(--brand-primary);
+
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.image-feed-title {
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 780;
+    letter-spacing: -0.055em;
+    line-height: 1.05;
+}
+
+.image-feed-description {
+    margin:
+        var(--space-3)
+        0
+        0;
+
+    color: var(--text-secondary);
+
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    line-height: 1.65;
+}
+
+.image-feed-controls {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+
+    padding-top: var(--space-3);
+}
+
+.image-scroll-sentinel {
+    width: 100%;
+    height: 1px;
+}
+
+.image-feed-status {
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.image-feed-error {
+    color: var(--status-danger);
+}
+
+.image-load-more {
+    display: inline-flex;
+    min-width: 9rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        var(--space-2)
+        var(--space-5);
+
+    color: var(--text-on-brand);
+    background:
+        linear-gradient(
+            145deg,
+            var(--brand-primary),
+            var(--brand-active)
+        );
+
+    border: 1px solid var(--brand-primary);
+    border-radius: var(--radius-sm);
+
+    box-shadow: var(--shadow-small);
+
+    font-weight: 700;
+    text-decoration: none;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        opacity var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.image-load-more:hover {
+    color: var(--text-on-brand);
+    background:
+        linear-gradient(
+            145deg,
+            var(--brand-hover),
+            var(--brand-active)
+        );
+
+    border-color: var(--brand-hover);
+    transform: translateY(-1px);
+}
+
+.image-load-more:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.image-load-more.is-loading {
+    pointer-events: none;
+    opacity: 0.6;
+    transform: none;
+}
+
+@media (max-width: 575.98px) {
+    .image-feed {
+        gap: var(--space-5);
+    }
+
+    .image-load-more {
+        width: 100%;
+    }
+}
+

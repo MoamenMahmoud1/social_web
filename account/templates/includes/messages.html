@@ -1,0 +1,30 @@
+
+{% if messages %}
+    <section
+        class="site-messages site-container"
+        aria-label="Notifications"
+        aria-live="polite"
+    >
+        {% for message in messages %}
+            <div
+                class="site-message site-message-{{ message.tags|default:'info' }}"
+                role="alert"
+                data-site-message
+            >
+                <div class="site-message-content">
+                    {{ message|safe }}
+                </div>
+
+                <button
+                    type="button"
+                    class="site-message-close"
+                    data-message-close
+                    aria-label="Close message"
+                >
+                    ×
+                </button>
+            </div>
+        {% endfor %}
+    </section>
+{% endif %}
+

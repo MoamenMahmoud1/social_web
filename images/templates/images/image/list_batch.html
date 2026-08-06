@@ -1,0 +1,15 @@
+
+<div data-image-batch>
+    {% include "images/image/list_images.html" with images=images %}
+</div>
+
+{% if has_next and next_cursor %}
+    <a
+        href="?cursor={{ next_cursor|urlencode }}"
+        data-next-images-url
+        hidden
+    >
+        Next images
+    </a>
+{% endif %}
+

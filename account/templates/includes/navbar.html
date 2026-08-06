@@ -1,0 +1,157 @@
+
+<header
+    id="header"
+    class="site-header sticky-top"
+>
+    <nav
+        class="navbar navbar-expand-lg"
+        aria-label="Main navigation"
+    >
+        <div class="site-container">
+            <a
+                href="{% if request.user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}"
+                class="navbar-brand site-brand"
+            >
+                <span
+                    class="site-brand-mark"
+                    aria-hidden="true"
+                >
+                    B
+                </span>
+
+                <span class="site-brand-text">
+                    Bookmarks
+                </span>
+            </a>
+
+            <button
+                class="navbar-toggler site-navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#main-navigation"
+                aria-controls="main-navigation"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div
+                id="main-navigation"
+                class="collapse navbar-collapse"
+            >
+                {% if request.user.is_authenticated %}
+                    <ul class="navbar-nav site-navigation">
+                        <li class="nav-item">
+                            <a
+                                href="{% url 'dashboard' %}"
+                                class="nav-link{% if section == 'dashboard' %} active{% endif %}"
+                                {% if section == "dashboard" %}
+                                    aria-current="page"
+                                {% endif %}
+                            >
+                                Dashboard
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a
+                                href="{% url 'images:list' %}"
+                                class="nav-link{% if section == 'images' %} active{% endif %}"
+                                {% if section == "images" %}
+                                    aria-current="page"
+                                {% endif %}
+                            >
+                                Images
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a
+                                href="{% url 'user_list' %}"
+                                class="nav-link{% if section == 'people' %} active{% endif %}"
+                                {% if section == "people" %}
+                                    aria-current="page"
+                                {% endif %}
+                            >
+                                People
+                            </a>
+                        </li>
+                    </ul>
+                {% endif %}
+
+                <div class="navbar-user-area">
+                    <button
+                        type="button"
+                        class="theme-toggle"
+                        data-theme-toggle
+                        aria-label="Switch to dark mode"
+                        aria-pressed="false"
+                    >
+                        <span
+                            class="theme-toggle-track"
+                            aria-hidden="true"
+                        >
+                            <span class="theme-toggle-thumb">
+                                <span class="theme-icon-light">
+                                    ☀
+                                </span>
+
+                                <span class="theme-icon-dark">
+                                    ☾
+                                </span>
+                            </span>
+                        </span>
+                    </button>
+
+                    {% if request.user.is_authenticated %}
+                        <div class="navbar-user">
+                            <span class="navbar-user-greeting">
+                                Hello,
+                            </span>
+
+                            <a
+                                href="{{ request.user.get_absolute_url }}"
+                                class="navbar-user-name"
+                            >
+                                {{ request.user.first_name|default:request.user.username }}
+                            </a>
+                        </div>
+
+                        <form
+                            action="{% url 'logout' %}"
+                            method="post"
+                            class="logout-form"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="navbar-action-button"
+                            >
+                                Logout
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="guest-navigation">
+                            <a
+                                href="{% url 'login' %}"
+                                class="navbar-action-button"
+                            >
+                                Log in
+                            </a>
+
+                            <a
+                                href="{% url 'register' %}"
+                                class="navbar-action-button navbar-action-primary"
+                            >
+                                Create account
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+

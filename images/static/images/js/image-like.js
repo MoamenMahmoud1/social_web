@@ -1,225 +1,358 @@
 "use strict";
 
+(() => {
+    const getSafeCount = (element) => {
+        const count = Number.parseInt(
+            element.textContent.trim(),
+            10
+        );
 
-function getSafeCount(element) {
-    const count = Number.parseInt(
-        element.textContent.trim(),
-        10
-    );
+        if (
+            Number.isNaN(count)
+            || count < 0
+        ) {
+            return 0;
+        }
 
-    if (Number.isNaN(count) || count < 0) {
-        return 0;
-    }
+        return count;
+    };
 
-    return count;
-}
-
-
-function updateLikeLabel(labelElement, count) {
-    labelElement.textContent = count === 1
-        ? "like"
-        : "likes";
-}
-
-
-function applyLikeState({
-    button,
-    buttonText,
-    countElement,
-    labelElement,
-    action,
-    count,
-}) {
-    const userHasLiked = action === "unlike";
-
-    countElement.textContent = String(count);
-
-    updateLikeLabel(
+    const updateLikeLabel = (
         labelElement,
         count
-    );
+    ) => {
+        labelElement.textContent =
+            count === 1
+                ? "like"
+                : "likes";
+    };
 
-    button.dataset.action = action;
-    button.setAttribute(
-        "aria-pressed",
-        String(userHasLiked)
-    );
+    const applyLikeState = ({
+        button,
+        buttonText,
+        countElement,
+        labelElement,
+        nextAction,
+        count,
+    }) => {
+        const userHasLiked =
+            nextAction === "unlike";
 
-    buttonText.textContent = userHasLiked
-        ? "Unlike"
-        : "Like";
-}
+        countElement.textContent =
+            String(count);
 
+        updateLikeLabel(
+            labelElement,
+            count
+        );
 
-async function sendLikeRequest({
-    url,
-    imageId,
-    action,
-    signal,
-}) {
-    const formData = new FormData();
+        button.dataset.action =
+            nextAction;
 
-    formData.append(
-        "id",
-        imageId
-    );
+        button.setAttribute(
+            "aria-pressed",
+            String(userHasLiked)
+        );
 
-    formData.append(
-        "action",
-        action
-    );
+        button.classList.toggle(
+            "is-liked",
+            userHasLiked
+        );
 
-    const response = await fetch(
-        url,
-        {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": window.csrfToken,
-                "X-Requested-With": "XMLHttpRequest",
-            },
-            mode: "same-origin",
-            body: formData,
-            signal,
+        buttonText.textContent =
+            userHasLiked
+                ? "Unlike"
+                : "Like";
+    };
+
+    const setLoadingState = (
+        button,
+        isLoading
+    ) => {
+        button.disabled = isLoading;
+
+        button.classList.toggle(
+            "is-loading",
+            isLoading
+        );
+
+        button.setAttribute(
+            "aria-busy",
+            String(isLoading)
+        );
+    };
+
+    const getCSRFToken = () => {
+        if (
+            typeof window.getCSRFToken
+            !== "function"
+        ) {
+            return null;
         }
-    );
 
-    let data;
+        return window.getCSRFToken();
+    };
 
-    try {
-        data = await response.json();
-    } catch {
-        throw new Error(
-            "The server returned an invalid response."
+    const sendLikeRequest = async ({
+        url,
+        imageId,
+        action,
+    }) => {
+        const csrfToken =
+            getCSRFToken();
+
+        if (!csrfToken) {
+            throw new Error(
+                "CSRF token could not be found."
+            );
+        }
+
+        const formData = new FormData();
+
+        formData.append(
+            "id",
+            imageId
         );
-    }
 
-    if (!response.ok || data.status !== "ok") {
-        throw new Error(
-            data.message || "The like request failed."
+        formData.append(
+            "action",
+            action
         );
-    }
 
-    return data;
-}
-
-
-function initializeImageLike() {
-    const button = document.querySelector(
-        "[data-like-button]"
-    );
-
-    const buttonText = document.querySelector(
-        "[data-like-button-text]"
-    );
-
-    const countElement = document.querySelector(
-        "[data-like-count]"
-    );
-
-    const labelElement = document.querySelector(
-        "[data-like-label]"
-    );
-
-    const errorElement = document.querySelector(
-        "[data-like-error]"
-    );
-
-    if (
-        !button
-        || !buttonText
-        || !countElement
-        || !labelElement
-        || !errorElement
-    ) {
-        return;
-    }
-
-    let requestInProgress = false;
-
-    button.addEventListener(
-        "click",
-        async () => {
-            if (requestInProgress) {
-                return;
+        const response = await fetch(
+            url,
+            {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken":
+                        csrfToken,
+                    "X-Requested-With":
+                        "XMLHttpRequest",
+                    "Accept":
+                        "application/json",
+                },
+                mode: "same-origin",
+                credentials: "same-origin",
+                body: formData,
             }
+        );
 
-            const previousAction =
-                button.dataset.action;
+        let data;
 
-            const previousCount =
-                getSafeCount(countElement);
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error(
+                "The server returned an invalid response."
+            );
+        }
 
-            const optimisticCount =
-                previousAction === "like"
-                    ? previousCount + 1
-                    : Math.max(
-                        0,
-                        previousCount - 1
-                    );
+        if (
+            !response.ok
+            || data.status !== "ok"
+        ) {
+            throw new Error(
+                data.message
+                || `The like request failed with status ${response.status}.`
+            );
+        }
 
-            const optimisticAction =
-                previousAction === "like"
-                    ? "unlike"
-                    : "like";
+        return data;
+    };
 
-            errorElement.hidden = true;
-            requestInProgress = true;
-            button.disabled = true;
+    const initializeImageLike = () => {
+        const button =
+            document.querySelector(
+                "[data-like-button]"
+            );
 
-            applyLikeState({
-                button,
-                buttonText,
-                countElement,
-                labelElement,
-                action: optimisticAction,
-                count: optimisticCount,
-            });
+        if (!button) {
+            return;
+        }
 
-            try {
-                const data = await sendLikeRequest({
-                    url: button.dataset.likeUrl,
-                    imageId: button.dataset.imageId,
-                    action: previousAction,
-                });
+        const buttonText =
+            button.querySelector(
+                "[data-like-button-text]"
+            );
 
-                if (!data.changed) {
-                    applyLikeState({
-                        button,
-                        buttonText,
-                        countElement,
-                        labelElement,
-                        action: previousAction,
-                        count: previousCount,
-                    });
+        const countElement =
+            document.querySelector(
+                "[data-like-count]"
+            );
+
+        const labelElement =
+            document.querySelector(
+                "[data-like-label]"
+            );
+
+        const errorElement =
+            document.querySelector(
+                "[data-like-error]"
+            );
+
+        if (
+            !buttonText
+            || !countElement
+            || !labelElement
+            || !errorElement
+        ) {
+            console.error(
+                "The like interface is incomplete."
+            );
+
+            return;
+        }
+
+        const likeUrl =
+            button.dataset.likeUrl;
+
+        const imageId =
+            button.dataset.imageId;
+
+        if (
+            !likeUrl
+            || !imageId
+        ) {
+            console.error(
+                "Like button data is incomplete."
+            );
+
+            return;
+        }
+
+        let requestInProgress = false;
+
+        button.classList.toggle(
+            "is-liked",
+            button.dataset.action === "unlike"
+        );
+
+        button.addEventListener(
+            "click",
+            async () => {
+                if (requestInProgress) {
+                    return;
                 }
 
-            } catch (error) {
+                const previousAction =
+                    button.dataset.action;
+
+                if (
+                    previousAction !== "like"
+                    && previousAction !== "unlike"
+                ) {
+                    console.error(
+                        "The like action is invalid."
+                    );
+
+                    return;
+                }
+
+                const previousCount =
+                    getSafeCount(
+                        countElement
+                    );
+
+                const optimisticCount =
+                    previousAction === "like"
+                        ? previousCount + 1
+                        : Math.max(
+                            previousCount - 1,
+                            0
+                        );
+
+                const optimisticNextAction =
+                    previousAction === "like"
+                        ? "unlike"
+                        : "like";
+
+                requestInProgress = true;
+                errorElement.hidden = true;
+
+                setLoadingState(
+                    button,
+                    true
+                );
+
                 applyLikeState({
                     button,
                     buttonText,
                     countElement,
                     labelElement,
-                    action: previousAction,
-                    count: previousCount,
+                    nextAction:
+                        optimisticNextAction,
+                    count:
+                        optimisticCount,
                 });
 
-                errorElement.hidden = false;
+                try {
+                    const data =
+                        await sendLikeRequest({
+                            url: likeUrl,
+                            imageId,
+                            action:
+                                previousAction,
+                        });
 
-                console.error(
-                    "Could not update image like:",
-                    error
-                );
+                    if (!data.changed) {
+                        applyLikeState({
+                            button,
+                            buttonText,
+                            countElement,
+                            labelElement,
+                            nextAction:
+                                previousAction,
+                            count:
+                                previousCount,
+                        });
+                    }
+                } catch (error) {
+                    applyLikeState({
+                        button,
+                        buttonText,
+                        countElement,
+                        labelElement,
+                        nextAction:
+                            previousAction,
+                        count:
+                            previousCount,
+                    });
 
-            } finally {
-                requestInProgress = false;
-                button.disabled = false;
+                    errorElement.textContent =
+                        error.message
+                        || "The like could not be updated.";
+
+                    errorElement.hidden =
+                        false;
+
+                    console.error(
+                        "Could not update image like:",
+                        error
+                    );
+                } finally {
+                    requestInProgress = false;
+
+                    setLoadingState(
+                        button,
+                        false
+                    );
+                }
             }
-        }
-    );
-}
+        );
+    };
 
+    if (
+        document.readyState === "loading"
+    ) {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeImageLike,
+            {
+                once: true,
+            }
+        );
+    } else {
+        initializeImageLike();
+    }
+})();
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeImageLike
-);

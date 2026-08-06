@@ -1,48 +1,113 @@
 {% extends "base.html" %}
-{% load static %}
-{% load thumbnail %}
+{% load thumbnail static_version %}
 
 {% block title %}
     {{ image.title }}
 {% endblock %}
 
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'images/css/image-detail.css' %}"
+        rel="stylesheet"
+    >
+{% endblock %}
+
 {% block content %}
     <article class="image-detail-page">
-        <h1>{{ image.title }}</h1>
+        <header class="image-detail-header">
+            <h1 class="image-detail-title">
+                {{ image.title }}
+            </h1>
 
-        <a
-            href="{{ image.image.url }}"
-            class="image-detail-link"
-        >
-            <img
-                src="{% thumbnail image.image 300x0 %}"
-                class="image-detail"
-                alt="{{ image.title }}"
+            <div class="image-owner">
+                <a
+                    href="{{ image.user.get_absolute_url }}"
+                    class="image-owner-avatar"
+                    aria-label="View {{ image.user.username }} profile"
+                >
+                    {% if image.user.profile.photo %}
+                        {% thumbnail image.user.profile.photo "48x48" crop="center" as owner_photo %}
+
+                        <img
+                            src="{{ owner_photo.url }}"
+                            width="{{ owner_photo.width }}"
+                            height="{{ owner_photo.height }}"
+                            alt="{{ image.user.get_full_name|default:image.user.username }}"
+                            class="image-owner-photo"
+                        >
+                    {% else %}
+                        <span
+                            class="image-owner-placeholder"
+                            aria-hidden="true"
+                        >
+                            {{ image.user.username|first|upper }}
+                        </span>
+                    {% endif %}
+                </a>
+
+                <div class="image-owner-details">
+                    <span class="image-owner-label">
+                        Bookmarked by
+                    </span>
+
+                    <a
+                        href="{{ image.user.get_absolute_url }}"
+                        class="image-owner-name"
+                    >
+                        {{ image.user.get_full_name|default:image.user.username }}
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <div class="image-preview">
+            <a
+                href="{{ image.image.url }}"
+                class="image-detail-link"
+                target="_blank"
+                rel="noopener noreferrer"
             >
-        </a>
+                {% thumbnail image.image "900x0" as detailed_image %}
+
+                <img
+                    src="{{ detailed_image.url }}"
+                    width="{{ detailed_image.width }}"
+                    height="{{ detailed_image.height }}"
+                    class="image-detail"
+                    alt="{{ image.title }}"
+                >
+            </a>
+        </div>
 
         <div class="image-info">
             <div class="image-actions">
-                <span class="count">
-                    <span data-like-count>
-                        {{ total_likes }}
-                    </span>
+                <div class="image-stats">
+                    <div class="image-stat">
+                        <strong data-like-count>
+                            {{ total_likes }}
+                        </strong>
 
-                    <span data-like-label>
-                        like{{ total_likes|pluralize }}
-                    </span>
-                </span>
+                        <span data-like-label>
+                            like{{ total_likes|pluralize }}
+                        </span>
+                    </div>
 
-                <span class="count">
                     {% if total_views is not None %}
-                        {{ total_views }}
-                        view{{ total_views|pluralize }}
+                        <div class="image-stat">
+                            <strong>
+                                {{ total_views }}
+                            </strong>
+
+                            <span>
+                                view{{ total_views|pluralize }}
+                            </span>
+                        </div>
                     {% endif %}
-                </span>
+                </div>
 
                 <button
                     type="button"
-                    class="like button"
+                    class="like-button{% if user_has_liked %} is-liked{% endif %}"
                     data-like-button
                     data-image-id="{{ image.id }}"
                     data-like-url="{% url 'images:like' %}"
@@ -59,6 +124,7 @@
                 </button>
 
                 <span
+                    class="like-error"
                     data-like-error
                     role="alert"
                     hidden
@@ -67,36 +133,68 @@
                 </span>
             </div>
 
-            <div class="image-description">
-                {{ image.description|linebreaks }}
-            </div>
+            {% if image.description %}
+                <div class="image-description">
+                    {{ image.description|linebreaks }}
+                </div>
+            {% endif %}
         </div>
 
         <section
             class="image-likes"
             aria-labelledby="liked-users-title"
         >
-            <h2 id="liked-users-title">
-                People who like this image
-            </h2>
+            <div class="image-likes-heading">
+                <h2 id="liked-users-title">
+                    People who like this image
+                </h2>
 
-            <div class="liked-users-list">
-                {% for user in image.liked_users %}
-                    <div class="liked-user">
-                        {% if user.profile.photo %}
-                            <img
-                                src="{{ user.profile.photo.url }}"
-                                alt="{{ user.first_name|default:user.username }}"
-                            >
-                        {% endif %}
+                {% if total_likes > 12 %}
+                    <span>
+                        Showing 12 of {{ total_likes }}
+                    </span>
+                {% endif %}
+            </div>
 
-                        <p>
-                            {{ user.first_name|default:user.username }}
-                        </p>
-                    </div>
+            <div
+                class="liked-users-list"
+                data-liked-users-list
+            >
+                {% for liked_user in liked_users %}
+                    <a
+                        href="{{ liked_user.get_absolute_url }}"
+                        class="liked-user"
+                    >
+                        <span class="liked-user-avatar">
+                            {% if liked_user.profile.photo %}
+                                {% thumbnail liked_user.profile.photo "80x80" crop="center" as liked_user_photo %}
 
+                                <img
+                                    src="{{ liked_user_photo.url }}"
+                                    width="{{ liked_user_photo.width }}"
+                                    height="{{ liked_user_photo.height }}"
+                                    alt="{{ liked_user.get_full_name|default:liked_user.username }}"
+                                    loading="lazy"
+                                >
+                            {% else %}
+                                <span
+                                    class="liked-user-placeholder"
+                                    aria-hidden="true"
+                                >
+                                    {{ liked_user.username|first|upper }}
+                                </span>
+                            {% endif %}
+                        </span>
+
+                        <span class="liked-user-name">
+                            {{ liked_user.get_full_name|default:liked_user.username }}
+                        </span>
+                    </a>
                 {% empty %}
-                    <p data-empty-likes>
+                    <p
+                        class="empty-likes"
+                        data-empty-likes
+                    >
                         Nobody likes this image yet.
                     </p>
                 {% endfor %}
@@ -107,7 +205,13 @@
 
 {% block extra_js %}
     <script
-        src="{% static 'images/js/image-like.js' %}?v=1.0"
+        src="{% versioned_static 'js/csrf.js' %}"
+        defer
+    ></script>
+
+    <script
+        src="{% versioned_static 'images/js/image-like.js' %}"
         defer
     ></script>
 {% endblock %}
+

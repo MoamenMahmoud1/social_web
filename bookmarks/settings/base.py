@@ -209,3 +209,18 @@ REDIS_URL = config(
     "REDIS_URL",
     default="redis://127.0.0.1:6379/0",
 )
+
+STORAGES = {
+    "default": {
+        "BACKEND": (
+            "django.core.files.storage."
+            "FileSystemStorage"
+        ),
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage."
+            "ManifestStaticFilesStorage"
+        ),
+    },
+}

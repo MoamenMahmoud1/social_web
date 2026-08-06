@@ -1,3 +1,4 @@
+
 import logging
 from functools import lru_cache
 
@@ -9,16 +10,17 @@ from redis.exceptions import RedisError
 logger = logging.getLogger(__name__)
 
 IMAGE_RANKING_KEY = "images:ranking:views"
+IMAGE_VIEW_TTL = 60 * 60
 
 
 @lru_cache(maxsize=1)
 def get_redis_client():
     """
-    Create and reuse one Redis connection-pool client.
+    Create and reuse one Redis client.
 
     redis-py manages the underlying connection pool.
-    Creating this client does not immediately connect;
-    the connection is opened when a Redis command runs.
+    Creating the client does not immediately open
+    a network connection.
     """
 
     return redis.Redis.from_url(
@@ -31,42 +33,93 @@ def get_redis_client():
     )
 
 
-def increment_image_views(image_id):
+def build_image_view_key(
+    *,
+    image_id: int,
+    viewer_id: int,
+) -> str:
     """
-    Increment the view score for one image.
-
-    Return the updated score as an integer.
-
-    Redis ranking is a non-critical feature. If Redis is
-    unavailable, return None and allow the page to load.
+    Build the temporary key used to prevent
+    duplicate views from the same user.
     """
+
+    return (
+        f"images:view:{image_id}:"
+        f"user:{viewer_id}"
+    )
+
+
+def increment_image_views(
+    *,
+    image_id: int,
+    viewer_id: int,
+) -> int | None:
+    """
+    Count one view per user and image every hour.
+
+    Return the current image view score.
+
+    If Redis is unavailable, return None and allow
+    the image page to continue loading normally.
+    """
+
+    if image_id <= 0 or viewer_id <= 0:
+        return None
+
+    view_key = build_image_view_key(
+        image_id=image_id,
+        viewer_id=viewer_id,
+    )
 
     try:
         redis_client = get_redis_client()
 
-        updated_score = redis_client.zincrby(
-            IMAGE_RANKING_KEY,
-            1,
-            str(image_id),
+        is_new_view = redis_client.set(
+            view_key,
+            "1",
+            nx=True,
+            ex=IMAGE_VIEW_TTL,
         )
 
-        return int(updated_score)
+        if is_new_view:
+            score = redis_client.zincrby(
+                IMAGE_RANKING_KEY,
+                1,
+                str(image_id),
+            )
+        else:
+            score = redis_client.zscore(
+                IMAGE_RANKING_KEY,
+                str(image_id),
+            )
 
-    except (RedisError, OSError):
+        return int(
+            float(score or 0)
+        )
+
+    except (
+        RedisError,
+        OSError,
+        TypeError,
+        ValueError,
+    ):
         logger.exception(
-            "Could not increment views for image %s",
+            "Could not register a view for image %s",
             image_id,
         )
 
         return None
 
 
-def get_image_ranking(limit=10):
+def get_image_ranking(
+    limit: int = 10,
+) -> list[int]:
     """
-    Return image IDs ordered from most viewed to least viewed.
+    Return image IDs ordered from most viewed
+    to least viewed.
 
-    If Redis is unavailable, return an empty list so the
-    ranking page remains available.
+    If Redis is unavailable, return an empty list
+    so the ranking page remains available.
     """
 
     if limit <= 0:
@@ -86,18 +139,21 @@ def get_image_ranking(limit=10):
             for image_id in image_ids
         ]
 
-    except (RedisError, OSError, ValueError):
+    except (
+        RedisError,
+        OSError,
+        ValueError,
+    ):
         logger.exception(
-            "Could not read image ranking",
+            "Could not read image ranking"
         )
 
         return []
 
 
-def redis_is_available():
+def redis_is_available() -> bool:
     """
     Return True when Redis responds to PING.
-    Useful for checks and tests.
     """
 
     try:
@@ -105,5 +161,42 @@ def redis_is_available():
             get_redis_client().ping()
         )
 
-    except (RedisError, OSError):
+    except (
+        RedisError,
+        OSError,
+    ):
+        return False
+
+def remove_image_from_ranking(
+    image_id: int,
+) -> bool:
+    """
+    Remove a deleted image from the Redis ranking.
+
+    Temporary view-deduplication keys are left to expire
+    automatically according to their TTL.
+    """
+
+    if image_id <= 0:
+        return False
+
+    try:
+        redis_client = get_redis_client()
+
+        redis_client.zrem(
+            IMAGE_RANKING_KEY,
+            str(image_id),
+        )
+
+        return True
+
+    except (
+        RedisError,
+        OSError,
+    ):
+        logger.exception(
+            "Could not remove image %s from ranking",
+            image_id,
+        )
+
         return False

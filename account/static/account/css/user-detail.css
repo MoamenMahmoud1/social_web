@@ -1,0 +1,332 @@
+.profile-page {
+    display: grid;
+    gap: clamp(
+        var(--space-8),
+        5vw,
+        4rem
+    );
+}
+
+.profile-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(
+        var(--space-5),
+        4vw,
+        2.5rem
+    );
+
+    padding: clamp(
+        var(--space-5),
+        4vw,
+        2.5rem
+    );
+
+    background:
+        linear-gradient(
+            145deg,
+            var(--surface-elevated),
+            var(--surface-primary)
+        );
+
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow-medium);
+}
+
+.profile-avatar {
+    display: grid;
+    width: clamp(7.5rem, 16vw, 11.25rem);
+    aspect-ratio: 1;
+    place-items: center;
+
+    overflow: hidden;
+
+    color: var(--text-on-brand);
+    background:
+        linear-gradient(
+            145deg,
+            var(--brand-primary),
+            var(--brand-active)
+        );
+
+    border: 1px solid var(--border-subtle);
+    border-radius: 2rem;
+
+    box-shadow: var(--shadow-small);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-initial {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 760;
+    line-height: 1;
+}
+
+.profile-summary {
+    min-width: 0;
+}
+
+.profile-eyebrow {
+    margin: 0 0 var(--space-2);
+
+    color: var(--brand-primary);
+
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.profile-name {
+    margin: 0;
+
+    overflow-wrap: anywhere;
+
+    color: var(--text-primary);
+
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 780;
+    letter-spacing: -0.055em;
+    line-height: 1.05;
+}
+
+.profile-username {
+    margin:
+        var(--space-2)
+        0
+        0;
+
+    color: var(--text-muted);
+
+    font-size: 1rem;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+
+    margin-top: var(--space-6);
+}
+
+.follower-count {
+    margin: 0;
+
+    color: var(--text-secondary);
+}
+
+.follower-total {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.follow-button {
+    display: inline-flex;
+    min-width: 7rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        var(--space-2)
+        var(--space-5);
+
+    color: var(--text-on-brand);
+    background:
+        linear-gradient(
+            145deg,
+            var(--brand-primary),
+            var(--brand-active)
+        );
+
+    border: 1px solid var(--brand-primary);
+    border-radius: var(--radius-sm);
+
+    box-shadow: var(--shadow-small);
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        opacity var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.follow-button:hover {
+    background:
+        linear-gradient(
+            145deg,
+            var(--brand-hover),
+            var(--brand-active)
+        );
+
+    transform: translateY(-1px);
+}
+
+.follow-button.is-following {
+    color: var(--text-primary);
+    background: var(--surface-secondary);
+    border-color: var(--border-default);
+}
+
+.follow-button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.follow-button:disabled,
+.follow-button.is-loading {
+    cursor: wait;
+    opacity: 0.65;
+    transform: none;
+}
+
+.profile-images {
+    min-width: 0;
+}
+
+.profile-images-header {
+    margin-bottom: var(--space-5);
+}
+
+.profile-images-title {
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    font-weight: 740;
+    letter-spacing: -0.035em;
+}
+
+.profile-pagination {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+
+    margin-top: var(--space-8);
+    padding: var(--space-4);
+
+    background: var(--surface-primary);
+
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+}
+
+.pagination-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.pagination-actions:last-child {
+    justify-content: flex-end;
+}
+
+.pagination-link {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+
+    padding:
+        var(--space-2)
+        var(--space-4);
+
+    color: var(--text-secondary);
+    background: var(--surface-secondary);
+
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+
+    font-size: 0.9rem;
+    font-weight: 650;
+    text-decoration: none;
+
+    transition:
+        color var(--transition-fast),
+        background-color var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.pagination-link:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
+.pagination-current {
+    color: var(--text-muted);
+
+    font-size: 0.9rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .profile-header {
+        grid-template-columns: 1fr;
+        justify-items: center;
+
+        text-align: center;
+    }
+
+    .profile-summary {
+        width: 100%;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+
+    .profile-pagination {
+        grid-template-columns: 1fr;
+    }
+
+    .pagination-actions,
+    .pagination-actions:last-child {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .profile-header {
+        padding: var(--space-4);
+    }
+
+    .profile-avatar {
+        border-radius: var(--radius-lg);
+    }
+
+    .profile-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .follow-button {
+        width: 100%;
+    }
+
+    .pagination-link {
+        flex: 1;
+    }
+}
+
