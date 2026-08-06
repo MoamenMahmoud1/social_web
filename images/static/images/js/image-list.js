@@ -2,6 +2,14 @@
 
 (() => {
     const initializeImageFeed = () => {
+        if (!window.UI) {
+            console.error(
+                "ui.js must load before image-list.js."
+            );
+
+            return;
+        }
+
         const feed = document.querySelector(
             "[data-image-feed]"
         );
@@ -58,39 +66,46 @@
                 String(loading)
             );
 
+            loadMoreLink.setAttribute(
+                "aria-disabled",
+                String(loading)
+            );
+
             if (loadingMessage) {
                 loadingMessage.hidden = !loading;
             }
 
-            if (
-                loading
-                && errorMessage
-            ) {
-                errorMessage.hidden = true;
+            if (loading) {
+                window.UI.hideError(
+                    errorMessage
+                );
             }
         };
 
         const pauseObserver = () => {
-            if (
-                observer
-                && sentinel
-            ) {
-                observer.unobserve(
-                    sentinel
-                );
+            if (!observer || !sentinel) {
+                return;
             }
+
+            observer.unobserve(
+                sentinel
+            );
         };
 
         const resumeObserver = () => {
             if (
-                observer
-                && sentinel
-                && document.body.contains(sentinel)
-            ) {
-                observer.observe(
+                !observer
+                || !sentinel
+                || !document.body.contains(
                     sentinel
-                );
+                )
+            ) {
+                return;
             }
+
+            observer.observe(
+                sentinel
+            );
         };
 
         const stopObserver = () => {
@@ -108,18 +123,22 @@
         };
 
         const appendImages = (html) => {
-            const template = document.createElement(
-                "template"
-            );
+            const template =
+                document.createElement(
+                    "template"
+                );
 
-            template.innerHTML = html.trim();
+            template.innerHTML =
+                html.trim();
 
             imageList.append(
                 template.content
             );
         };
 
-        const createNextUrl = (cursor) => {
+        const createNextUrl = (
+            cursor
+        ) => {
             const url = new URL(
                 window.location.href
             );
@@ -132,12 +151,46 @@
             return url.toString();
         };
 
+        const parseResponse = async (
+            response
+        ) => {
+            let data;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                throw new Error(
+                    "The server returned an invalid response."
+                );
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message
+                    || `Could not load images: ${response.status}`
+                );
+            }
+
+            if (
+                typeof data.html
+                !== "string"
+            ) {
+                throw new Error(
+                    "The response does not contain image HTML."
+                );
+            }
+
+            return data;
+        };
+
         const loadNextPage = async () => {
             if (isLoading) {
                 return;
             }
 
-            const nextUrl = loadMoreLink.href;
+            const nextUrl =
+                loadMoreLink.href;
 
             if (!nextUrl) {
                 removeControls();
@@ -148,35 +201,26 @@
             setLoadingState(true);
 
             try {
-                const response = await fetch(
-                    nextUrl,
-                    {
-                        method: "GET",
-                        headers: {
-                            "X-Requested-With":
-                                "XMLHttpRequest",
-                            "Accept":
-                                "application/json",
-                        },
-                        credentials: "same-origin",
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Could not load images: ${response.status}`
+                const response =
+                    await fetch(
+                        nextUrl,
+                        {
+                            method: "GET",
+                            headers: {
+                                "X-Requested-With":
+                                    "XMLHttpRequest",
+                                "Accept":
+                                    "application/json",
+                            },
+                            credentials:
+                                "same-origin",
+                        }
                     );
-                }
 
-                const data = await response.json();
-
-                if (
-                    typeof data.html !== "string"
-                ) {
-                    throw new Error(
-                        "The response does not contain image HTML."
+                const data =
+                    await parseResponse(
+                        response
                     );
-                }
 
                 appendImages(
                     data.html
@@ -190,15 +234,22 @@
                         createNextUrl(
                             data.next_cursor
                         );
-                } else {
-                    removeControls();
-                }
-            } catch (error) {
-                console.error(error);
 
-                if (errorMessage) {
-                    errorMessage.hidden = false;
+                    return;
                 }
+
+                removeControls();
+            } catch (error) {
+                window.UI.showError(
+                    errorMessage,
+                    error.message
+                    || "We could not load more images."
+                );
+
+                console.error(
+                    "Could not load more images:",
+                    error
+                );
             } finally {
                 if (
                     document.body.contains(
@@ -216,34 +267,42 @@
             (event) => {
                 event.preventDefault();
 
+                if (isLoading) {
+                    return;
+                }
+
                 loadNextPage();
             }
         );
 
         if (
             sentinel
-            && "IntersectionObserver" in window
+            && "IntersectionObserver"
+                in window
         ) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    const entry = entries[0];
+            observer =
+                new IntersectionObserver(
+                    (entries) => {
+                        const entry =
+                            entries[0];
 
-                    if (
-                        !entry
-                        || !entry.isIntersecting
-                        || isLoading
-                    ) {
-                        return;
+                        if (
+                            !entry
+                            || !entry.isIntersecting
+                            || isLoading
+                        ) {
+                            return;
+                        }
+
+                        loadNextPage();
+                    },
+                    {
+                        root: null,
+                        rootMargin:
+                            "150px 0px",
+                        threshold: 0,
                     }
-
-                    loadNextPage();
-                },
-                {
-                    root: null,
-                    rootMargin: "150px 0px",
-                    threshold: 0,
-                }
-            );
+                );
 
             observer.observe(
                 sentinel
@@ -251,16 +310,16 @@
         }
     };
 
-    if (document.readyState === "loading") {
-        document.addEventListener(
-            "DOMContentLoaded",
-            initializeImageFeed,
-            {
-                once: true,
-            }
+    if (!window.UI) {
+        console.error(
+            "ui.js must load before image-list.js."
         );
-    } else {
-        initializeImageFeed();
+
+        return;
     }
+
+    window.UI.initializeWhenReady(
+        initializeImageFeed
+    );
 })();
 

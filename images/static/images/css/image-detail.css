@@ -1,0 +1,454 @@
+
+.image-detail-page {
+    width: min(100%, 980px);
+    margin-inline: auto;
+}
+
+.image-detail-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+}
+
+.image-detail-title {
+    min-width: 0;
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 750;
+    line-height: 1.12;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================
+   Image owner
+========================================= */
+
+.image-owner {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+
+    gap: var(--space-3);
+}
+
+.image-owner-avatar {
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-small);
+}
+
+.image-owner-details {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.image-owner-label {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.image-owner-name {
+    max-width: 190px;
+
+    color: var(--text-primary);
+
+    font-weight: 650;
+
+    overflow: hidden;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.image-owner-name:hover {
+    color: var(--brand-primary);
+}
+
+.image-owner-name:focus-visible,
+.image-owner-avatar:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+
+/* =========================================
+   Main image
+========================================= */
+
+.image-preview {
+    position: relative;
+    isolation: isolate;
+
+    display: flex;
+    width: 100%;
+    min-height: 320px;
+    max-height: 760px;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+
+    background: var(--surface-secondary);
+    box-shadow: var(--shadow-medium);
+
+    overflow: hidden;
+
+    transition:
+        box-shadow 300ms ease,
+        transform 300ms ease;
+}
+.image-preview:hover {
+    box-shadow: var(--shadow-large);
+    transform: scale(1.02);
+}
+.image-detail {
+    display: block;
+
+    width: auto;
+    max-width: 100%;
+
+    height: auto;
+    max-height: 760px;
+
+    object-fit: contain;
+    object-position: center;
+
+    image-rendering: auto;
+
+    transition: filter 300ms ease;
+}
+
+.image-preview:hover .image-detail {
+    filter: brightness(1.04);
+}
+
+.image-preview::before {
+    position: absolute;
+    z-index: -2;
+    inset: -30px;
+
+    content: "";
+
+    background-image: var(--preview-image);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    filter:
+        blur(25px)
+        brightness(0.62);
+
+    transform: scale(1.12);
+}
+
+.image-preview::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+
+    content: "";
+
+    background: rgb(0 0 0 / 14%);
+
+    pointer-events: none;
+}
+
+.image-detail-link {
+    display: flex;
+    width: 100%;
+    min-height: 320px;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.image-detail-link:focus-visible {
+    outline: none;
+    box-shadow: inset var(--focus-ring);
+}
+
+.image-detail {
+    display: block;
+
+    width: auto;
+    max-width: 100%;
+
+    height: auto;
+    max-height: 760px;
+
+    object-fit: contain;
+    object-position: center;
+
+    image-rendering: auto;
+
+    transition:
+        filter 300ms ease,
+        transform 300ms ease;
+}
+
+
+
+
+/* =========================================
+   Image information
+========================================= */
+
+.image-info {
+    margin-top: var(--space-5);
+}
+
+.image-actions {
+    display: flex;
+    flex-wrap: wrap;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: var(--space-4);
+}
+
+.image-stats {
+    display: flex;
+    align-items: center;
+
+    gap: var(--space-5);
+}
+
+.image-stat {
+    display: flex;
+    align-items: baseline;
+
+    gap: var(--space-1);
+
+    color: var(--text-secondary);
+}
+
+.image-stat strong {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.image-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: var(--space-3);
+}
+
+.image-delete-form {
+    margin: 0;
+}
+
+.like-button.is-loading {
+    pointer-events: none;
+}
+
+.like-error {
+    flex-basis: 100%;
+}
+
+.image-description {
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+
+    border-top: 1px solid var(--border-subtle);
+
+    color: var(--text-secondary);
+
+    overflow-wrap: anywhere;
+}
+
+.image-description p {
+    margin-top: 0;
+}
+
+.image-description p:last-child {
+    margin-bottom: 0;
+}
+
+
+/* =========================================
+   Liked users
+========================================= */
+
+.image-likes {
+    margin-top: var(--space-6);
+}
+
+.image-likes-heading {
+    display: flex;
+
+    align-items: baseline;
+    justify-content: space-between;
+
+    gap: var(--space-4);
+
+    margin-bottom: var(--space-5);
+}
+
+.image-likes-heading h2 {
+    margin: 0;
+
+    color: var(--text-primary);
+
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.image-likes-heading span {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.liked-users-list {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(135px, 1fr)
+        );
+
+    gap: var(--space-4);
+}
+
+.liked-user {
+    display: flex;
+    min-width: 0;
+    padding: var(--space-3);
+
+    flex-direction: column;
+    align-items: center;
+
+    gap: var(--space-2);
+
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    color: var(--text-primary);
+    background: var(--surface-secondary);
+
+    text-align: center;
+    text-decoration: none;
+
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+.liked-user:hover {
+    border-color: var(--border-default);
+    background: var(--surface-hover);
+
+    transform: translateY(-2px);
+}
+
+.liked-user:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.liked-user-name {
+    display: block;
+    width: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empty-likes {
+    grid-column: 1 / -1;
+}
+
+
+/* =========================================
+   Tablet and mobile
+========================================= */
+
+@media (max-width: 767.98px) {
+    .image-detail-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .image-owner-name {
+        max-width: min(70vw, 260px);
+    }
+
+    .image-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .image-action-buttons {
+        width: 100%;
+    }
+
+    .like-button,
+    .image-delete-form {
+        flex: 1;
+    }
+
+    .delete-image-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .image-preview,
+    .image-detail-link {
+        min-height: 240px;
+    }
+
+    .image-preview {
+        border-radius: var(--radius-md);
+    }
+
+    .image-stats {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .image-action-buttons {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .like-button,
+    .image-delete-form,
+    .delete-image-button {
+        width: 100%;
+    }
+
+    .image-likes-heading {
+        align-items: flex-start;
+        flex-direction: column;
+
+        gap: var(--space-1);
+    }
+
+    .liked-users-list {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+}
+

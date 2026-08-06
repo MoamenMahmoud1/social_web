@@ -22,7 +22,7 @@
             <div class="image-owner">
                 <a
                     href="{{ image.user.get_absolute_url }}"
-                    class="image-owner-avatar"
+                    class="avatar avatar-medium image-owner-avatar"
                     aria-label="View {{ image.user.username }} profile"
                 >
                     {% if image.user.profile.photo %}
@@ -33,11 +33,10 @@
                             width="{{ owner_photo.width }}"
                             height="{{ owner_photo.height }}"
                             alt="{{ image.user.get_full_name|default:image.user.username }}"
-                            class="image-owner-photo"
                         >
                     {% else %}
                         <span
-                            class="image-owner-placeholder"
+                            class="avatar-placeholder"
                             aria-hidden="true"
                         >
                             {{ image.user.username|first|upper }}
@@ -60,26 +59,27 @@
             </div>
         </header>
 
-        <div class="image-preview">
+        <div
+            class="image-preview"
+            style="--preview-image: url('{{ image.image.url }}');"
+        >
             <a
                 href="{{ image.image.url }}"
                 class="image-detail-link"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Open the original image"
             >
-                {% thumbnail image.image "900x0" as detailed_image %}
-
                 <img
-                    src="{{ detailed_image.url }}"
-                    width="{{ detailed_image.width }}"
-                    height="{{ detailed_image.height }}"
+                    src="{{ image.image.url }}"
                     class="image-detail"
                     alt="{{ image.title }}"
+                    decoding="async"
                 >
             </a>
         </div>
 
-        <div class="image-info">
+        <div class="card card-padding image-info">
             <div class="image-actions">
                 <div class="image-stats">
                     <div class="image-stat">
@@ -105,26 +105,46 @@
                     {% endif %}
                 </div>
 
-                <button
-                    type="button"
-                    class="like-button{% if user_has_liked %} is-liked{% endif %}"
-                    data-like-button
-                    data-image-id="{{ image.id }}"
-                    data-like-url="{% url 'images:like' %}"
-                    data-action="{% if user_has_liked %}unlike{% else %}like{% endif %}"
-                    aria-pressed="{% if user_has_liked %}true{% else %}false{% endif %}"
-                >
-                    <span data-like-button-text>
-                        {% if user_has_liked %}
-                            Unlike
-                        {% else %}
-                            Like
-                        {% endif %}
-                    </span>
-                </button>
+                <div class="image-action-buttons">
+                    <button
+                        type="button"
+                        class="button button-outline-primary like-button{% if user_has_liked %} is-liked{% endif %}"
+                        data-like-button
+                        data-image-id="{{ image.id }}"
+                        data-like-url="{% url 'images:like' %}"
+                        data-action="{% if user_has_liked %}unlike{% else %}like{% endif %}"
+                        aria-pressed="{% if user_has_liked %}true{% else %}false{% endif %}"
+                    >
+                        <span data-like-button-text>
+                            {% if user_has_liked %}
+                                Unlike
+                            {% else %}
+                                Like
+                            {% endif %}
+                        </span>
+                    </button>
+
+                    {% if request.user == image.user %}
+                        <form
+                            method="post"
+                            action="{% url 'images:delete' image.id %}"
+                            class="image-delete-form"
+                            data-delete-form
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="button button-danger delete-image-button"
+                            >
+                                Delete image
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
 
                 <span
-                    class="like-error"
+                    class="error-message like-error"
                     data-like-error
                     role="alert"
                     hidden
@@ -141,7 +161,7 @@
         </div>
 
         <section
-            class="image-likes"
+            class="card card-padding image-likes"
             aria-labelledby="liked-users-title"
         >
             <div class="image-likes-heading">
@@ -165,7 +185,7 @@
                         href="{{ liked_user.get_absolute_url }}"
                         class="liked-user"
                     >
-                        <span class="liked-user-avatar">
+                        <span class="avatar avatar-large liked-user-avatar">
                             {% if liked_user.profile.photo %}
                                 {% thumbnail liked_user.profile.photo "80x80" crop="center" as liked_user_photo %}
 
@@ -178,7 +198,7 @@
                                 >
                             {% else %}
                                 <span
-                                    class="liked-user-placeholder"
+                                    class="avatar-placeholder"
                                     aria-hidden="true"
                                 >
                                     {{ liked_user.username|first|upper }}
@@ -192,7 +212,7 @@
                     </a>
                 {% empty %}
                     <p
-                        class="empty-likes"
+                        class="empty-state empty-likes"
                         data-empty-likes
                     >
                         Nobody likes this image yet.
@@ -211,6 +231,11 @@
 
     <script
         src="{% versioned_static 'images/js/image-like.js' %}"
+        defer
+    ></script>
+
+    <script
+        src="{% versioned_static 'images/js/image-delete.js' %}"
         defer
     ></script>
 {% endblock %}

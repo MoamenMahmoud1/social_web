@@ -1,20 +1,30 @@
+
 .image-feed {
     display: grid;
     gap: var(--space-6);
 }
+
+
+/* =========================================
+   Header
+========================================= */
 
 .image-feed-header {
     max-width: 46rem;
 }
 
 .image-feed-eyebrow {
-    margin: 0 0 var(--space-2);
+    margin:
+        0
+        0
+        var(--space-2);
 
     color: var(--brand-primary);
 
     font-size: 0.8rem;
     font-weight: 750;
     letter-spacing: 0.12em;
+
     text-transform: uppercase;
 }
 
@@ -41,9 +51,16 @@
     line-height: 1.65;
 }
 
+
+/* =========================================
+   Infinite-scroll controls
+========================================= */
+
 .image-feed-controls {
     display: grid;
+
     justify-items: center;
+
     gap: var(--space-3);
 
     padding-top: var(--space-3);
@@ -67,18 +84,18 @@
     color: var(--status-danger);
 }
 
-.image-load-more {
-    display: inline-flex;
-    min-width: 9rem;
-    min-height: 2.75rem;
-    align-items: center;
-    justify-content: center;
 
-    padding:
-        var(--space-2)
-        var(--space-5);
+/* =========================================
+   Load-more button
+========================================= */
+
+.image-load-more {
+    min-width: 9rem;
+
+    border-radius: var(--radius-sm);
 
     color: var(--text-on-brand);
+
     background:
         linear-gradient(
             145deg,
@@ -86,44 +103,28 @@
             var(--brand-active)
         );
 
-    border: 1px solid var(--brand-primary);
-    border-radius: var(--radius-sm);
-
     box-shadow: var(--shadow-small);
-
-    font-weight: 700;
-    text-decoration: none;
-
-    transition:
-        background-color var(--transition-fast),
-        border-color var(--transition-fast),
-        opacity var(--transition-fast),
-        transform var(--transition-fast);
 }
 
 .image-load-more:hover {
     color: var(--text-on-brand);
+
     background:
         linear-gradient(
             145deg,
             var(--brand-hover),
             var(--brand-active)
         );
-
-    border-color: var(--brand-hover);
-    transform: translateY(-1px);
-}
-
-.image-load-more:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
 }
 
 .image-load-more.is-loading {
     pointer-events: none;
-    opacity: 0.6;
-    transform: none;
 }
+
+
+/* =========================================
+   Mobile
+========================================= */
 
 @media (max-width: 575.98px) {
     .image-feed {

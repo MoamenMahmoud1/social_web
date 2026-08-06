@@ -1,14 +1,100 @@
+
 {% extends "base.html" %}
-{% block title %}Images ranking{% endblock %}
-{% block content %}
- <h1>Images ranking</h1>
- <ol>
- {% for image in most_viewed %}
- <li>
- <a href="{{ image.get_absolute_url }}">
- {{ image.title }}
- </a>
- </li>
- {% endfor %}
- </ol>
+{% load thumbnail static_version %}
+
+{% block title %}
+    Images ranking
 {% endblock %}
+
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'images/css/image-ranking.css' %}"
+        rel="stylesheet"
+    >
+{% endblock %}
+
+{% block content %}
+    <section
+        class="image-ranking-page"
+        aria-labelledby="image-ranking-title"
+    >
+        <header class="image-ranking-header">
+            <p class="image-ranking-eyebrow">
+                Trending
+            </p>
+
+            <h1
+                id="image-ranking-title"
+                class="image-ranking-title"
+            >
+                Most viewed images
+            </h1>
+
+            <p class="image-ranking-description">
+                Discover the images receiving the most views.
+            </p>
+        </header>
+
+        {% if most_viewed %}
+            <ol class="image-ranking-list">
+                {% for image in most_viewed %}
+                    <li class="card card-hover image-ranking-item">
+                        <span
+                            class="image-ranking-position"
+                            aria-label="Position {{ forloop.counter }}"
+                        >
+                            {{ forloop.counter }}
+                        </span>
+
+                        <a
+                            href="{{ image.get_absolute_url }}"
+                            class="image-ranking-preview"
+                            aria-label="View {{ image.title }}"
+                        >
+                            {% thumbnail image.image "160x160" crop="smart" as ranking_thumbnail %}
+
+                            <img
+                                src="{{ ranking_thumbnail.url }}"
+                                width="{{ ranking_thumbnail.width }}"
+                                height="{{ ranking_thumbnail.height }}"
+                                alt="{{ image.title }}"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </a>
+
+                        <div class="image-ranking-content">
+                            <h2 class="image-ranking-item-title">
+                                <a href="{{ image.get_absolute_url }}">
+                                    {{ image.title }}
+                                </a>
+                            </h2>
+
+                            <p class="image-ranking-owner">
+                                Bookmarked by
+
+                                <a href="{{ image.user.get_absolute_url }}">
+                                    {{ image.user.get_full_name|default:image.user.username }}
+                                </a>
+                            </p>
+                        </div>
+
+                        <a
+                            href="{{ image.get_absolute_url }}"
+                            class="button button-secondary button-small image-ranking-action"
+                        >
+                            View image
+                        </a>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <div class="card card-padding empty-state image-ranking-empty">
+                <p>
+                    No ranked images are available yet.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
+

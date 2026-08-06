@@ -2,10 +2,12 @@ from django.apps import AppConfig
 
 
 class ImagesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'images'
+    default_auto_field = (
+        "django.db.models.BigAutoField"
+    )
 
+    name = "images"
 
     def ready(self):
-        # import signal handlers
-        pass
+        from . import signals  # noqa: F401
+

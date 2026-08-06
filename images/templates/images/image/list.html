@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static_version %}
+
 {% block title %}
     Images bookmarked
 {% endblock %}
@@ -20,13 +21,17 @@
     <section
         class="image-feed"
         data-image-feed
+        aria-labelledby="image-feed-title"
     >
         <header class="image-feed-header">
             <p class="image-feed-eyebrow">
                 Discover
             </p>
 
-            <h1 class="image-feed-title">
+            <h1
+                id="image-feed-title"
+                class="image-feed-title"
+            >
                 Images bookmarked
             </h1>
 
@@ -58,13 +63,14 @@
                     class="image-feed-status"
                     data-images-loading
                     role="status"
+                    aria-live="polite"
                     hidden
                 >
                     Loading more images...
                 </p>
 
                 <p
-                    class="image-feed-status image-feed-error"
+                    class="error-message image-feed-status image-feed-error"
                     data-images-error
                     role="alert"
                     hidden
@@ -74,7 +80,7 @@
 
                 <a
                     href="?cursor={{ next_cursor|urlencode }}"
-                    class="image-load-more"
+                    class="button button-secondary image-load-more"
                     data-load-more-images
                 >
                     Load more
@@ -87,5 +93,7 @@
 {% block extra_js %}
     <script
         src="{% versioned_static 'images/js/image-list.js' %}"
+        defer
     ></script>
 {% endblock %}
+

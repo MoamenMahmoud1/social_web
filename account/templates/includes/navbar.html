@@ -77,6 +77,27 @@
                                 People
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a
+                                href="{% url 'images:ranking' %}"
+                                class="nav-link ranking-nav-link{% if section == 'ranking' %} active{% endif %}"
+                                {% if section == "ranking" %}
+                                    aria-current="page"
+                                {% endif %}
+                            >
+                                <span
+                                    class="ranking-nav-icon"
+                                    aria-hidden="true"
+                                >
+                                    ★
+                                </span>
+
+                                <span>
+                                    Ranking
+                                </span>
+                            </a>
+                        </li>
                     </ul>
                 {% endif %}
 
@@ -105,6 +126,25 @@
                     </button>
 
                     {% if request.user.is_authenticated %}
+                        {% if request.user.is_staff or request.user.is_superuser %}
+                            <a
+                                href="{% url 'admin:index' %}"
+                                class="admin-panel-link"
+                                aria-label="Open admin panel"
+                            >
+                                <span
+                                    class="admin-panel-icon"
+                                    aria-hidden="true"
+                                >
+                                    ⚙
+                                </span>
+
+                                <span>
+                                    Admin
+                                </span>
+                            </a>
+                        {% endif %}
+
                         <div class="navbar-user">
                             <span class="navbar-user-greeting">
                                 Hello,

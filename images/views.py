@@ -15,7 +15,6 @@ from .models import Image
 from .ranking import (
     get_image_ranking,
     increment_image_views,
-    remove_image_from_ranking,
 )
 
 from .pagination import (
@@ -122,8 +121,10 @@ def image_detail(request, id, slug):
     )
 
     total_views = increment_image_views(
-        image.id
-    )
+                image_id=image.id,
+                viewer_id=request.user.id,)
+
+    
 
     return render(
         request,
@@ -241,8 +242,9 @@ def image_ranking(request):
         request,
         "images/image/ranking.html",
         {
-            "section": "images",
+            "section": "ranking",
             "most_viewed": most_viewed,
+            
         },
     )
 
@@ -293,13 +295,7 @@ def image_delete(request, id):
         user=request.user,
     )
 
-    image_id = image.id
-
     image.delete()
-
-    remove_image_from_ranking(
-        image_id
-    )
 
     messages.success(
         request,

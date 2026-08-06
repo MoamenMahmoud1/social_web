@@ -1,10 +1,12 @@
+
 {% load thumbnail %}
 
 {% for image in images %}
-    <article class="image-card">
+    <article class="card card-hover image-card">
         <a
             href="{{ image.get_absolute_url }}"
             class="image-card-preview"
+            aria-label="View {{ image.title }}"
         >
             {% thumbnail image.image "300x300" crop="smart" as thumbnail_image %}
 
@@ -14,6 +16,7 @@
                 width="{{ thumbnail_image.width }}"
                 height="{{ thumbnail_image.height }}"
                 loading="lazy"
+                decoding="async"
             >
         </a>
 
@@ -26,8 +29,7 @@
         </div>
     </article>
 {% empty %}
-    <div class="image-list-empty">
+    <div class="empty-state image-list-empty">
         <p>No images found.</p>
     </div>
 {% endfor %}
-
