@@ -1,19 +1,6 @@
 .people-page {
-    width: 100%;
-}
-
-.people-page-header {
-    margin-bottom: var(--space-6);
-}
-
-.people-page-title {
-    margin: 0;
-
-    color: var(--text-primary);
-
-    font-size: clamp(1.8rem, 4vw, 2.7rem);
-    font-weight: 750;
-    letter-spacing: -0.04em;
+    display: grid;
+    gap: var(--space-6);
 }
 
 .people-list {
@@ -23,16 +10,14 @@
             auto-fill,
             minmax(min(100%, 17rem), 1fr)
         );
-
     gap: var(--space-5);
 }
 
 .person-card {
     display: flex;
+    min-width: 0;
     align-items: center;
     gap: var(--space-4);
-
-    min-width: 0;
     padding: var(--space-4);
 
     color: var(--text-primary);
@@ -65,12 +50,14 @@
     display: grid;
     width: 4.5rem;
     height: 4.5rem;
-    place-items: center;
+
     flex: 0 0 auto;
+    place-items: center;
 
     overflow: hidden;
 
     color: var(--text-on-brand);
+
     background:
         linear-gradient(
             145deg,
@@ -91,44 +78,42 @@
     object-fit: cover;
 }
 
+.person-avatar-initial {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+}
+
 .person-details {
     min-width: 0;
+}
+
+.person-name,
+.person-username {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .person-name {
     margin: 0;
 
-    overflow: hidden;
-
     color: var(--text-primary);
 
     font-size: 1rem;
     font-weight: 700;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .person-username {
     margin: var(--space-1) 0 0;
 
-    overflow: hidden;
-
     color: var(--text-muted);
 
     font-size: 0.88rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .people-empty {
-    padding: var(--space-8);
-
-    color: var(--text-secondary);
-    background: var(--surface-primary);
-
-    border: 1px dashed var(--border-default);
-    border-radius: var(--radius-lg);
-
     text-align: center;
 }
 
@@ -147,4 +132,3 @@
         height: 4rem;
     }
 }
-

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static_version %}
 
 {% block title %}
     People
@@ -7,14 +7,14 @@
 
 {% block extra_css %}
     <link
-        href="{% static 'account/css/user-list.css' %}?v=1.0"
+        href="{% versioned_static 'account/css/user-list.css' %}"
         rel="stylesheet"
     >
 {% endblock %}
 
 {% block content %}
 <section class="people-page">
-    {% include "components/page_header.html" with title="People" %}
+    {% include "components/page_header.html" with title="People" description="Discover people and explore their bookmarked images." %}
 
     {% if users %}
         <div class="people-list">
@@ -23,7 +23,7 @@
                     href="{{ person.get_absolute_url }}"
                     class="person-card"
                 >
-                    {% include "components/avatar.html" with user=person size="160x160" class_name="person-avatar" lazy=True %}
+                    {% include "components/avatar.html" with user=person size="160x160" class_name="person-avatar" placeholder_class="person-avatar-initial" lazy=True %}
 
                     <div class="person-details">
                         <h2 class="person-name">

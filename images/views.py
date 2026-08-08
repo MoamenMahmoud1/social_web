@@ -1,10 +1,20 @@
 from django.contrib import messages
-
 from django.contrib.auth.decorators import login_required
-
-from django.db.models import Case, Exists, IntegerField, OuterRef, When , Q
-from django.http import  JsonResponse , Http404
-from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models import (
+    Case,
+    Exists,
+    IntegerField,
+    OuterRef,
+    When,
+)
+from django.http import Http404, JsonResponse
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from action.utils import create_action
@@ -12,19 +22,15 @@ from action.utils import create_action
 from .forms import ImageCreateForm
 from .like_services import change_image_like
 from .models import Image
+from .pagination import (
+    InvalidCursorError,
+    paginate_images_by_cursor,
+)
 from .ranking import (
     get_image_ranking,
     increment_image_views,
 )
 
-from .pagination import (
-    InvalidCursorError,
-    paginate_images_by_cursor,
-)
-
-from django.template.loader import render_to_string
-
-from django.views.decorators.csrf import ensure_csrf_cookie
 
 @login_required
 def image_create(request):
@@ -70,10 +76,17 @@ def image_create(request):
         },
     )
 
+
 @ensure_csrf_cookie
 @login_required
-def image_detail(request, id, slug):
-    user_like_through_model = Image.users_like.through
+def image_detail(
+    request,
+    id,
+    slug,
+):
+    user_like_model = (
+        Image.users_like.through
+    )
 
     image = get_object_or_404(
         Image.objects
@@ -83,7 +96,7 @@ def image_detail(request, id, slug):
         )
         .annotate(
             user_has_liked=Exists(
-                user_like_through_model.objects.filter(
+                user_like_model.objects.filter(
                     image_id=OuterRef("pk"),
                     user_id=request.user.id,
                 )
@@ -121,10 +134,9 @@ def image_detail(request, id, slug):
     )
 
     total_views = increment_image_views(
-                image_id=image.id,
-                viewer_id=request.user.id,)
-
-    
+        image_id=image.id,
+        viewer_id=request.user.id,
+    )
 
     return render(
         request,
@@ -135,10 +147,11 @@ def image_detail(request, id, slug):
             "liked_users": liked_users,
             "total_views": total_views,
             "total_likes": image.total_likes,
-            "user_has_liked": image.user_has_liked,
+            "user_has_liked": (
+                image.user_has_liked
+            ),
         },
     )
-
 
 
 @login_required
@@ -166,15 +179,23 @@ def image_list(request):
     try:
         batch = paginate_images_by_cursor(
             images_queryset,
-            cursor=request.GET.get("cursor"),
+            cursor=request.GET.get(
+                "cursor"
+            ),
         )
+
     except InvalidCursorError as error:
         raise Http404(
             "Invalid or expired image cursor."
         ) from error
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        images_html = render_to_string(
+    if (
+        request.headers.get(
+            "x-requested-with"
+        )
+        == "XMLHttpRequest"
+    ):
+        html = render_to_string(
             "images/image/list_images.html",
             {
                 "images": batch.items,
@@ -184,9 +205,11 @@ def image_list(request):
 
         return JsonResponse(
             {
-                "html": images_html,
+                "html": html,
                 "has_next": batch.has_next,
-                "next_cursor": batch.next_cursor,
+                "next_cursor": (
+                    batch.next_cursor
+                ),
             }
         )
 
@@ -197,25 +220,28 @@ def image_list(request):
             "section": "images",
             "images": batch.items,
             "has_next": batch.has_next,
-            "next_cursor": batch.next_cursor,
+            "next_cursor": (
+                batch.next_cursor
+            ),
         },
     )
 
+
 @login_required
 def image_ranking(request):
-    image_ranking_ids = get_image_ranking(
+    ranking_ids = get_image_ranking(
         limit=10
     )
 
-    if image_ranking_ids:
-        preserved_order = Case(
+    if ranking_ids:
+        order = Case(
             *[
                 When(
                     pk=image_id,
                     then=position,
                 )
                 for position, image_id
-                in enumerate(image_ranking_ids)
+                in enumerate(ranking_ids)
             ],
             output_field=IntegerField(),
         )
@@ -223,20 +249,26 @@ def image_ranking(request):
         most_viewed = (
             Image.objects
             .filter(
-                id__in=image_ranking_ids
+                id__in=ranking_ids
             )
+            .select_related("user")
             .only(
                 "id",
                 "slug",
                 "title",
+                "image",
+                "user__id",
+                "user__username",
+                "user__first_name",
+                "user__last_name",
             )
-            .order_by(
-                preserved_order
-            )
+            .order_by(order)
         )
 
     else:
-        most_viewed = Image.objects.none()
+        most_viewed = (
+            Image.objects.none()
+        )
 
     return render(
         request,
@@ -244,21 +276,26 @@ def image_ranking(request):
         {
             "section": "ranking",
             "most_viewed": most_viewed,
-            
         },
     )
 
 
-
-
-
-@require_POST
 @login_required
+@require_POST
 def image_like(request):
     image_id = request.POST.get("id")
-    action = request.POST.get("action")
+    action = request.POST.get(
+        "action"
+    )
 
-    if not image_id or action not in {"like", "unlike"}:
+    if (
+        not image_id
+        or action
+        not in {
+            "like",
+            "unlike",
+        }
+    ):
         return JsonResponse(
             {
                 "status": "error",
@@ -286,9 +323,13 @@ def image_like(request):
         }
     )
 
+
 @login_required
 @require_POST
-def image_delete(request, id):
+def image_delete(
+    request,
+    id,
+):
     image = get_object_or_404(
         Image,
         id=id,

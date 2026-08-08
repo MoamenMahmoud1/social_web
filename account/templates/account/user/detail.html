@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static thumbnail %}
+{% load static_version %}
 
 {% block title %}
     {{ user.get_full_name|default:user.username }}
@@ -7,155 +7,142 @@
 
 {% block extra_css %}
     <link
-        href="{% static 'images/css/image-cards.css' %}?v=1.0"
+        href="{% versioned_static 'images/css/image-cards.css' %}"
         rel="stylesheet"
     >
 
     <link
-        href="{% static 'account/css/user-detail.css' %}?v=1.0"
+        href="{% versioned_static 'account/css/user-detail.css' %}"
         rel="stylesheet"
     >
 {% endblock %}
 
 {% block content %}
-    <section class="profile-page">
-        <header class="profile-header">
-            <div class="profile-avatar">
-                {% if user.profile.photo %}
-                    {% thumbnail user.profile.photo "180x180" crop="center" as profile_image %}
+<section class="profile-page">
+    <header class="profile-header">
+        {% include "components/avatar.html" with user=user size="180x180" class_name="profile-avatar" placeholder_class="profile-initial" %}
 
-                    <img
-                        src="{{ profile_image.url }}"
-                        width="{{ profile_image.width }}"
-                        height="{{ profile_image.height }}"
-                        alt="{{ user.get_full_name|default:user.username }}"
+        <div class="profile-summary">
+            <p class="profile-eyebrow">
+                Profile
+            </p>
+
+            <h1 class="profile-name">
+                {{ user.get_full_name|default:user.username }}
+            </h1>
+
+            <p class="profile-username">
+                @{{ user.username }}
+            </p>
+
+            <div class="profile-actions">
+                <p class="follower-count">
+                    <strong
+                        class="follower-total"
+                        data-follower-total
                     >
-                {% else %}
-                    <span
-                        class="profile-initial"
-                        aria-label="{{ user.username }}"
-                    >
-                        {{ user.username|first|upper }}
+                        {{ user.total_followers }}
+                    </strong>
+
+                    <span data-follower-label>
+                        follower{{ user.total_followers|pluralize }}
                     </span>
+                </p>
+
+                {% if request.user != user %}
+                    <button
+                        type="button"
+                        class="button button-primary follow-button{% if user.is_followed_by_request_user %} is-following{% endif %}"
+                        data-follow-button
+                        data-user-id="{{ user.id }}"
+                        data-follow-url="{% url 'user_follow' %}"
+                        data-action="{% if user.is_followed_by_request_user %}unfollow{% else %}follow{% endif %}"
+                        aria-pressed="{% if user.is_followed_by_request_user %}true{% else %}false{% endif %}"
+                    >
+                        {% if user.is_followed_by_request_user %}
+                            Unfollow
+                        {% else %}
+                            Follow
+                        {% endif %}
+                    </button>
                 {% endif %}
             </div>
+        </div>
+    </header>
 
-            <div class="profile-summary">
-                <p class="profile-eyebrow">
-                    Profile
-                </p>
-
-                <h1 class="profile-name">
-                    {{ user.get_full_name|default:user.username }}
-                </h1>
-
-                <p class="profile-username">
-                    @{{ user.username }}
-                </p>
-
-                <div class="profile-actions">
-                    <p class="follower-count">
-                        <strong
-                            class="follower-total"
-                            data-follower-total
-                        >
-                            {{ user.total_followers }}
-                        </strong>
-
-                        <span data-follower-label>
-                            follower{{ user.total_followers|pluralize }}
-                        </span>
-                    </p>
-
-                    {% if request.user != user %}
-                        <button
-                            type="button"
-                            class="follow-button"
-                            data-follow-button
-                            data-user-id="{{ user.id }}"
-                            data-follow-url="{% url 'user_follow' %}"
-                            data-action="{% if user.is_followed_by_request_user %}unfollow{% else %}follow{% endif %}"
-                            aria-pressed="{% if user.is_followed_by_request_user %}true{% else %}false{% endif %}"
-                        >
-                            {% if user.is_followed_by_request_user %}
-                                Unfollow
-                            {% else %}
-                                Follow
-                            {% endif %}
-                        </button>
-                    {% endif %}
-                </div>
-            </div>
+    <section class="profile-images">
+        <header class="profile-images-header">
+            <h2 class="profile-images-title">
+                Images bookmarked by {{ user.username }}
+            </h2>
         </header>
 
-        <section class="profile-images">
-            <header class="profile-images-header">
-                <h2 class="profile-images-title">
-                    Images bookmarked by {{ user.username }}
-                </h2>
-            </header>
+        <div
+            id="image-list"
+            class="image-container"
+        >
+            {% include "images/image/list_images.html" with images=images %}
+        </div>
 
-            <div
-                id="image-list"
-                class="image-container"
+        {% if images.has_other_pages %}
+            <nav
+                class="profile-pagination"
+                aria-label="Images pagination"
             >
-                {% include "images/image/list_images.html" with images=images %}
-            </div>
+                <div class="pagination-actions">
+                    {% if images.has_previous %}
+                        <a
+                            href="?page=1"
+                            class="button button-secondary button-small"
+                        >
+                            First
+                        </a>
 
-            {% if images.has_other_pages %}
-                <nav
-                    class="profile-pagination"
-                    aria-label="Images pagination"
-                >
-                    <div class="pagination-actions">
-                        {% if images.has_previous %}
-                            <a
-                                href="?page=1"
-                                class="pagination-link"
-                            >
-                                First
-                            </a>
+                        <a
+                            href="?page={{ images.previous_page_number }}"
+                            class="button button-secondary button-small"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+                </div>
 
-                            <a
-                                href="?page={{ images.previous_page_number }}"
-                                class="pagination-link"
-                            >
-                                Previous
-                            </a>
-                        {% endif %}
-                    </div>
+                <span class="pagination-current">
+                    Page {{ images.number }}
+                    of {{ images.paginator.num_pages }}
+                </span>
 
-                    <span class="pagination-current">
-                        Page {{ images.number }}
-                        of {{ images.paginator.num_pages }}
-                    </span>
+                <div class="pagination-actions">
+                    {% if images.has_next %}
+                        <a
+                            href="?page={{ images.next_page_number }}"
+                            class="button button-secondary button-small"
+                        >
+                            Next
+                        </a>
 
-                    <div class="pagination-actions">
-                        {% if images.has_next %}
-                            <a
-                                href="?page={{ images.next_page_number }}"
-                                class="pagination-link"
-                            >
-                                Next
-                            </a>
-
-                            <a
-                                href="?page={{ images.paginator.num_pages }}"
-                                class="pagination-link"
-                            >
-                                Last
-                            </a>
-                        {% endif %}
-                    </div>
-                </nav>
-            {% endif %}
-        </section>
+                        <a
+                            href="?page={{ images.paginator.num_pages }}"
+                            class="button button-secondary button-small"
+                        >
+                            Last
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        {% endif %}
     </section>
+</section>
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'js/csrf.js' %}?v=1.0"></script>
+    <script
+        src="{% versioned_static 'js/csrf.js' %}"
+        defer
+    ></script>
 
-    <script src="{% static 'account/js/user-detail.js' %}?v=1.0"></script>
+    <script
+        src="{% versioned_static 'account/js/user-detail.js' %}"
+        defer
+    ></script>
 {% endblock %}
-
