@@ -1,84 +1,30 @@
-
 "use strict";
 
-(() => {
-    const initializeImageDelete = () => {
-        if (!window.UI) {
-            console.error(
-                "The shared UI utilities could not be found."
-            );
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector(
+        "[data-delete-form]"
+    );
 
-            return;
-        }
-
-        const deleteForm =
-            document.querySelector(
-                "[data-delete-form]"
-            );
-
-        if (!deleteForm) {
-            return;
-        }
-
-        const deleteButton =
-            deleteForm.querySelector(
-                ".delete-image-button"
-            );
-
-        if (!deleteButton) {
-            console.error(
-                "The delete button could not be found."
-            );
-
-            return;
-        }
-
-        let submissionStarted =
-            false;
-
-        deleteForm.addEventListener(
-            "submit",
-            (event) => {
-                if (submissionStarted) {
-                    event.preventDefault();
-                    return;
-                }
-
-                const shouldDelete =
-                    window.confirm(
-                        "Are you sure you want to delete this image? This action cannot be undone."
-                    );
-
-                if (!shouldDelete) {
-                    event.preventDefault();
-                    return;
-                }
-
-                submissionStarted =
-                    true;
-
-                window.UI.setButtonLoading(
-                    deleteButton,
-                    {
-                        loading: true,
-                        loadingText:
-                            "Deleting...",
-                    }
-                );
-            }
-        );
-    };
-
-    if (!window.UI) {
-        console.error(
-            "ui.js must load before image-delete.js."
-        );
-
+    if (!form) {
         return;
     }
 
-    window.UI.initializeWhenReady(
-        initializeImageDelete
-    );
-})();
+    form.addEventListener("submit", (event) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this image?"
+        );
 
+        if (!confirmed) {
+            event.preventDefault();
+            return;
+        }
+
+        const button = form.querySelector(
+            "button[type='submit']"
+        );
+
+        if (button) {
+            button.disabled = true;
+        }
+    });
+});

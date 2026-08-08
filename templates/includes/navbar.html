@@ -22,6 +22,7 @@
                     Bookmarks
                 </span>
             </a>
+            
 
             <button
                 class="navbar-toggler site-navbar-toggler"
@@ -156,6 +157,12 @@
                                 {{ request.user.first_name|default:request.user.username }}
                             </a>
                         </div>
+                        <a
+                            href="{% url 'images:create' %}"
+                            class="navbar-action-button"
+                        >
+                            Add image
+                        </a>
 
                         <form
                             action="{% url 'logout' %}"

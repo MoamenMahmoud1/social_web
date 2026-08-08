@@ -18,76 +18,61 @@
 {% endblock %}
 
 {% block content %}
-    <section
-        class="image-feed"
-        data-image-feed
-        aria-labelledby="image-feed-title"
+<section
+    class="image-feed"
+    data-image-feed
+    aria-labelledby="image-feed-title"
+>
+    {% include "components/page_header.html" with eyebrow="Discover" title="Images bookmarked" title_id="image-feed-title" description="Explore images saved by the community." %}
+
+    <div
+        id="image-list"
+        class="image-container"
+        data-image-list
     >
-        <header class="image-feed-header">
-            <p class="image-feed-eyebrow">
-                Discover
-            </p>
+        {% include "images/image/list_images.html" with images=images %}
+    </div>
 
-            <h1
-                id="image-feed-title"
-                class="image-feed-title"
-            >
-                Images bookmarked
-            </h1>
-
-            <p class="image-feed-description">
-                Explore images saved by the community.
-            </p>
-        </header>
-
+    {% if has_next and next_cursor %}
         <div
-            id="image-list"
-            class="image-container"
-            data-image-list
+            class="image-feed-controls"
+            data-image-feed-controls
         >
-            {% include "images/image/list_images.html" with images=images %}
-        </div>
-
-        {% if has_next and next_cursor %}
             <div
-                class="image-feed-controls"
-                data-image-feed-controls
+                class="image-scroll-sentinel"
+                data-scroll-sentinel
+                aria-hidden="true"
+            ></div>
+
+            <p
+                class="image-feed-status"
+                data-images-loading
+                role="status"
+                aria-live="polite"
+                hidden
             >
-                <div
-                    class="image-scroll-sentinel"
-                    data-scroll-sentinel
-                    aria-hidden="true"
-                ></div>
+                Loading more images...
+            </p>
 
-                <p
-                    class="image-feed-status"
-                    data-images-loading
-                    role="status"
-                    aria-live="polite"
-                    hidden
-                >
-                    Loading more images...
-                </p>
+            <p
+                class="error-message image-feed-status image-feed-error"
+                data-images-error
+                role="alert"
+                hidden
+            >
+                We could not load more images.
+            </p>
 
-                <p
-                    class="error-message image-feed-status image-feed-error"
-                    data-images-error
-                    role="alert"
-                    hidden
-                >
-                    We could not load more images.
-                </p>
-
-                <a
-                    href="?cursor={{ next_cursor|urlencode }}"
-                    class="button button-secondary image-load-more"
-                    data-load-more-images
-                >
-                    Load more
-                </a>
-            </div>
-        {% endif %}
-    </section>
+            <a
+                href="?cursor={{ next_cursor|urlencode }}"
+                class="button button-secondary image-load-more"
+                data-load-more-images
+            >
+                Load more
+            </a>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}
 
 {% block extra_js %}
@@ -96,4 +81,3 @@
         defer
     ></script>
 {% endblock %}
-

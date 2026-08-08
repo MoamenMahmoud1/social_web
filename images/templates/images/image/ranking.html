@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load thumbnail static_version %}
 
@@ -14,45 +13,29 @@
 {% endblock %}
 
 {% block content %}
-    <section
-        class="image-ranking-page"
-        aria-labelledby="image-ranking-title"
-    >
-        <header class="image-ranking-header">
-            <p class="image-ranking-eyebrow">
-                Trending
-            </p>
+<section
+    class="image-ranking-page"
+    aria-labelledby="image-ranking-title"
+>
+    {% include "components/page_header.html" with eyebrow="Trending" title="Most viewed images" title_id="image-ranking-title" description="Discover the images receiving the most views." %}
 
-            <h1
-                id="image-ranking-title"
-                class="image-ranking-title"
-            >
-                Most viewed images
-            </h1>
+    {% if most_viewed %}
+        <ol class="image-ranking-list">
+            {% for image in most_viewed %}
+                <li class="card card-hover image-ranking-item">
+                    <span
+                        class="image-ranking-position"
+                        aria-label="Position {{ forloop.counter }}"
+                    >
+                        {{ forloop.counter }}
+                    </span>
 
-            <p class="image-ranking-description">
-                Discover the images receiving the most views.
-            </p>
-        </header>
-
-        {% if most_viewed %}
-            <ol class="image-ranking-list">
-                {% for image in most_viewed %}
-                    <li class="card card-hover image-ranking-item">
-                        <span
-                            class="image-ranking-position"
-                            aria-label="Position {{ forloop.counter }}"
-                        >
-                            {{ forloop.counter }}
-                        </span>
-
-                        <a
-                            href="{{ image.get_absolute_url }}"
-                            class="image-ranking-preview"
-                            aria-label="View {{ image.title }}"
-                        >
-                            {% thumbnail image.image "160x160" crop="smart" as ranking_thumbnail %}
-
+                    <a
+                        href="{{ image.get_absolute_url }}"
+                        class="image-ranking-preview"
+                        aria-label="View {{ image.title }}"
+                    >
+                        {% thumbnail image.image "160x160" crop="smart" as ranking_thumbnail %}
                             <img
                                 src="{{ ranking_thumbnail.url }}"
                                 width="{{ ranking_thumbnail.width }}"
@@ -61,40 +44,40 @@
                                 loading="lazy"
                                 decoding="async"
                             >
-                        </a>
+                    </a>
 
-                        <div class="image-ranking-content">
-                            <h2 class="image-ranking-item-title">
-                                <a href="{{ image.get_absolute_url }}">
-                                    {{ image.title }}
-                                </a>
-                            </h2>
+                    <div class="image-ranking-content">
+                        <h2 class="image-ranking-item-title">
+                            <a href="{{ image.get_absolute_url }}">
+                                {{ image.title }}
+                            </a>
+                        </h2>
 
-                            <p class="image-ranking-owner">
-                                Bookmarked by
+                        <p class="image-ranking-owner">
+                            Bookmarked by
 
-                                <a href="{{ image.user.get_absolute_url }}">
-                                    {{ image.user.get_full_name|default:image.user.username }}
-                                </a>
-                            </p>
-                        </div>
+                            <a href="{{ image.user.get_absolute_url }}">
+                                {{ image.user.get_full_name|default:image.user.username }}
+                            </a>
+                        </p>
+                    </div>
 
-                        <a
-                            href="{{ image.get_absolute_url }}"
-                            class="button button-secondary button-small image-ranking-action"
-                        >
-                            View image
-                        </a>
-                    </li>
-                {% endfor %}
-            </ol>
-        {% else %}
-            <div class="card card-padding empty-state image-ranking-empty">
-                <p>
-                    No ranked images are available yet.
-                </p>
-            </div>
-        {% endif %}
-    </section>
+                    <a
+                        href="{{ image.get_absolute_url }}"
+                        class="button button-secondary button-small image-ranking-action"
+                    >
+                        View image
+                    </a>
+                </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <div class="card card-padding empty-state image-ranking-empty">
+            <p>
+                No ranked images are available yet.
+            </p>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}
 

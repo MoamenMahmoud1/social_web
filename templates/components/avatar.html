@@ -1,0 +1,23 @@
+{% load thumbnail %}
+
+{% with avatar_size=size|default:"80x80" %}
+    <span class="{{ class_name|default:'avatar' }}">
+        {% if user.profile.photo %}
+            {% thumbnail user.profile.photo avatar_size crop="center" as avatar_image %}
+                <img
+                    src="{{ avatar_image.url }}"
+                    width="{{ avatar_image.width }}"
+                    height="{{ avatar_image.height }}"
+                    alt="{{ user.get_full_name|default:user.username }}"
+                    {% if lazy %}loading="lazy"{% endif %}
+                >
+        {% else %}
+            <span
+                class="{{ placeholder_class|default:'avatar-placeholder' }}"
+                aria-hidden="true"
+            >
+                {{ user.username|first|upper }}
+            </span>
+        {% endif %}
+    </span>
+{% endwith %}

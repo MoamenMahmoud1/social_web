@@ -1,0 +1,20 @@
+<header class="{{ header_class|default:'page-header' }}">
+    {% if eyebrow %}
+        <p class="{{ eyebrow_class|default:'page-eyebrow' }}">
+            {{ eyebrow }}
+        </p>
+    {% endif %}
+
+    <h1
+        {% if title_id %}id="{{ title_id }}"{% endif %}
+        class="{{ title_class|default:'page-title' }}"
+    >
+        {{ title }}
+    </h1>
+
+    {% if description %}
+        <p class="{{ description_class|default:'page-description' }}">
+            {{ description }}
+        </p>
+    {% endif %}
+</header>

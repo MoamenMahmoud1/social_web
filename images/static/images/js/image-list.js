@@ -2,23 +2,15 @@
 
 (() => {
     const initializeImageFeed = () => {
-        if (!window.UI) {
-            console.error(
-                "ui.js must load before image-list.js."
-            );
-
-            return;
-        }
-
         const feed = document.querySelector(
             "[data-image-feed]"
         );
 
-        if (!feed) {
+        if (!feed || !window.UI) {
             return;
         }
 
-        const imageList = feed.querySelector(
+        const list = feed.querySelector(
             "[data-image-list]"
         );
 
@@ -26,19 +18,19 @@
             "[data-image-feed-controls]"
         );
 
-        if (!imageList || !controls) {
+        if (!list || !controls) {
             return;
         }
 
-        const loadMoreLink = controls.querySelector(
+        const loadMore = controls.querySelector(
             "[data-load-more-images]"
         );
 
-        const loadingMessage = controls.querySelector(
+        const loading = controls.querySelector(
             "[data-images-loading]"
         );
 
-        const errorMessage = controls.querySelector(
+        const error = controls.querySelector(
             "[data-images-error]"
         );
 
@@ -46,80 +38,38 @@
             "[data-scroll-sentinel]"
         );
 
-        if (!loadMoreLink) {
+        if (!loadMore) {
             return;
         }
 
         let isLoading = false;
-        let observer = null;
+        let observer;
 
-        const setLoadingState = (loading) => {
-            isLoading = loading;
+        const setLoading = (state) => {
+            isLoading = state;
 
-            loadMoreLink.classList.toggle(
+            loadMore.classList.toggle(
                 "is-loading",
-                loading
+                state
             );
 
-            loadMoreLink.setAttribute(
+            loadMore.setAttribute(
                 "aria-busy",
-                String(loading)
+                String(state)
             );
 
-            loadMoreLink.setAttribute(
+            loadMore.setAttribute(
                 "aria-disabled",
-                String(loading)
+                String(state)
             );
-
-            if (loadingMessage) {
-                loadingMessage.hidden = !loading;
-            }
 
             if (loading) {
-                window.UI.hideError(
-                    errorMessage
-                );
-            }
-        };
-
-        const pauseObserver = () => {
-            if (!observer || !sentinel) {
-                return;
+                loading.hidden = !state;
             }
 
-            observer.unobserve(
-                sentinel
-            );
-        };
-
-        const resumeObserver = () => {
-            if (
-                !observer
-                || !sentinel
-                || !document.body.contains(
-                    sentinel
-                )
-            ) {
-                return;
+            if (state) {
+                window.UI.hideError(error);
             }
-
-            observer.observe(
-                sentinel
-            );
-        };
-
-        const stopObserver = () => {
-            if (!observer) {
-                return;
-            }
-
-            observer.disconnect();
-            observer = null;
-        };
-
-        const removeControls = () => {
-            stopObserver();
-            controls.remove();
         };
 
         const appendImages = (html) => {
@@ -131,16 +81,14 @@
             template.innerHTML =
                 html.trim();
 
-            imageList.append(
+            list.append(
                 template.content
             );
         };
 
-        const createNextUrl = (
-            cursor
-        ) => {
+        const setNextCursor = (cursor) => {
             const url = new URL(
-                window.location.href
+                loadMore.href
             );
 
             url.searchParams.set(
@@ -148,40 +96,13 @@
                 cursor
             );
 
-            return url.toString();
+            loadMore.href =
+                url.toString();
         };
 
-        const parseResponse = async (
-            response
-        ) => {
-            let data;
-
-            try {
-                data =
-                    await response.json();
-            } catch {
-                throw new Error(
-                    "The server returned an invalid response."
-                );
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message
-                    || `Could not load images: ${response.status}`
-                );
-            }
-
-            if (
-                typeof data.html
-                !== "string"
-            ) {
-                throw new Error(
-                    "The response does not contain image HTML."
-                );
-            }
-
-            return data;
+        const finishFeed = () => {
+            observer?.disconnect();
+            controls.remove();
         };
 
         const loadNextPage = async () => {
@@ -189,38 +110,36 @@
                 return;
             }
 
-            const nextUrl =
-                loadMoreLink.href;
-
-            if (!nextUrl) {
-                removeControls();
-                return;
-            }
-
-            pauseObserver();
-            setLoadingState(true);
+            setLoading(true);
 
             try {
-                const response =
-                    await fetch(
-                        nextUrl,
-                        {
-                            method: "GET",
-                            headers: {
-                                "X-Requested-With":
-                                    "XMLHttpRequest",
-                                "Accept":
-                                    "application/json",
-                            },
-                            credentials:
-                                "same-origin",
-                        }
-                    );
+                const response = await fetch(
+                    loadMore.href,
+                    {
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest",
+                            "Accept":
+                                "application/json",
+                        },
+                        credentials:
+                            "same-origin",
+                    }
+                );
 
                 const data =
-                    await parseResponse(
-                        response
+                    await response.json();
+
+                if (
+                    !response.ok
+                    || typeof data.html
+                        !== "string"
+                ) {
+                    throw new Error(
+                        data.message
+                        || "We could not load more images."
                     );
+                }
 
                 appendImages(
                     data.html
@@ -230,46 +149,35 @@
                     data.has_next
                     && data.next_cursor
                 ) {
-                    loadMoreLink.href =
-                        createNextUrl(
-                            data.next_cursor
-                        );
+                    setNextCursor(
+                        data.next_cursor
+                    );
 
                     return;
                 }
 
-                removeControls();
-            } catch (error) {
+                finishFeed();
+            } catch (requestError) {
                 window.UI.showError(
-                    errorMessage,
-                    error.message
+                    error,
+                    requestError.message
                     || "We could not load more images."
-                );
-
-                console.error(
-                    "Could not load more images:",
-                    error
                 );
             } finally {
                 if (
                     document.body.contains(
-                        loadMoreLink
+                        controls
                     )
                 ) {
-                    setLoadingState(false);
-                    resumeObserver();
+                    setLoading(false);
                 }
             }
         };
 
-        loadMoreLink.addEventListener(
+        loadMore.addEventListener(
             "click",
             (event) => {
                 event.preventDefault();
-
-                if (isLoading) {
-                    return;
-                }
 
                 loadNextPage();
             }
@@ -283,24 +191,16 @@
             observer =
                 new IntersectionObserver(
                     (entries) => {
-                        const entry =
-                            entries[0];
-
                         if (
-                            !entry
-                            || !entry.isIntersecting
-                            || isLoading
+                            entries[0]
+                                .isIntersecting
                         ) {
-                            return;
+                            loadNextPage();
                         }
-
-                        loadNextPage();
                     },
                     {
-                        root: null,
                         rootMargin:
-                            "150px 0px",
-                        threshold: 0,
+                            "300px 0px",
                     }
                 );
 
@@ -310,16 +210,7 @@
         }
     };
 
-    if (!window.UI) {
-        console.error(
-            "ui.js must load before image-list.js."
-        );
-
-        return;
-    }
-
     window.UI.initializeWhenReady(
         initializeImageFeed
     );
 })();
-

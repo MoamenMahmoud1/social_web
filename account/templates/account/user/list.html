@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static thumbnail %}
+{% load static %}
 
 {% block title %}
     People
@@ -13,55 +13,34 @@
 {% endblock %}
 
 {% block content %}
-    <section class="people-page">
-        <header class="people-page-header">
-            <h1 class="people-page-title">
-                People
-            </h1>
-        </header>
+<section class="people-page">
+    {% include "components/page_header.html" with title="People" %}
 
-        {% if users %}
-            <div class="people-list">
-                {% for person in users %}
-                    <a
-                        href="{{ person.get_absolute_url }}"
-                        class="person-card"
-                    >
-                        <div class="person-avatar">
-                            {% if person.profile.photo %}
-                                {% thumbnail person.profile.photo "160x160" crop="center" as avatar %}
-                                    <img
-                                        src="{{ avatar.url }}"
-                                        alt="{{ person.get_full_name|default:person.username }}"
-                                        width="{{ avatar.width }}"
-                                        height="{{ avatar.height }}"
-                                        loading="lazy"
-                                    >
-                                
-                            {% else %}
-                                <span aria-hidden="true">
-                                    {{ person.username|first|upper }}
-                                </span>
-                            {% endif %}
-                        </div>
+    {% if users %}
+        <div class="people-list">
+            {% for person in users %}
+                <a
+                    href="{{ person.get_absolute_url }}"
+                    class="person-card"
+                >
+                    {% include "components/avatar.html" with user=person size="160x160" class_name="person-avatar" lazy=True %}
 
-                        <div class="person-details">
-                            <h2 class="person-name">
-                                {{ person.get_full_name|default:person.username }}
-                            </h2>
+                    <div class="person-details">
+                        <h2 class="person-name">
+                            {{ person.get_full_name|default:person.username }}
+                        </h2>
 
-                            <p class="person-username">
-                                @{{ person.username }}
-                            </p>
-                        </div>
-                    </a>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="people-empty">
-                No people were found.
-            </div>
-        {% endif %}
-    </section>
+                        <p class="person-username">
+                            @{{ person.username }}
+                        </p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state people-empty">
+            No people were found.
+        </div>
+    {% endif %}
+</section>
 {% endblock %}
-

@@ -1,14 +1,15 @@
-
 .image-detail-page {
     width: min(100%, 980px);
     margin-inline: auto;
 }
 
+
+/* Header */
+
 .image-detail-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-
     gap: var(--space-5);
     margin-bottom: var(--space-6);
 }
@@ -16,26 +17,20 @@
 .image-detail-title {
     min-width: 0;
     margin: 0;
-
     color: var(--text-primary);
-
     font-size: clamp(1.8rem, 4vw, 3rem);
     font-weight: 750;
     line-height: 1.12;
-
     overflow-wrap: anywhere;
 }
 
 
-/* =========================================
-   Image owner
-========================================= */
+/* Owner */
 
 .image-owner {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
-
     gap: var(--space-3);
 }
 
@@ -57,11 +52,8 @@
 
 .image-owner-name {
     max-width: 190px;
-
     color: var(--text-primary);
-
     font-weight: 650;
-
     overflow: hidden;
     text-decoration: none;
     text-overflow: ellipsis;
@@ -79,75 +71,44 @@
 }
 
 
-/* =========================================
-   Main image
-========================================= */
+/* Image */
 
 .image-preview {
     position: relative;
     isolation: isolate;
-
     display: flex;
     width: 100%;
     min-height: 320px;
     max-height: 760px;
-
     align-items: center;
     justify-content: center;
-
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-
     background: var(--surface-secondary);
     box-shadow: var(--shadow-medium);
-
     overflow: hidden;
-
     transition:
         box-shadow 300ms ease,
         transform 300ms ease;
 }
+
 .image-preview:hover {
     box-shadow: var(--shadow-large);
     transform: scale(1.02);
-}
-.image-detail {
-    display: block;
-
-    width: auto;
-    max-width: 100%;
-
-    height: auto;
-    max-height: 760px;
-
-    object-fit: contain;
-    object-position: center;
-
-    image-rendering: auto;
-
-    transition: filter 300ms ease;
-}
-
-.image-preview:hover .image-detail {
-    filter: brightness(1.04);
 }
 
 .image-preview::before {
     position: absolute;
     z-index: -2;
     inset: -30px;
-
     content: "";
-
     background-image: var(--preview-image);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-
     filter:
         blur(25px)
         brightness(0.62);
-
     transform: scale(1.12);
 }
 
@@ -155,11 +116,8 @@
     position: absolute;
     z-index: -1;
     inset: 0;
-
     content: "";
-
     background: rgb(0 0 0 / 14%);
-
     pointer-events: none;
 }
 
@@ -167,10 +125,8 @@
     display: flex;
     width: 100%;
     min-height: 320px;
-
     align-items: center;
     justify-content: center;
-
     overflow: hidden;
     text-decoration: none;
 }
@@ -182,29 +138,24 @@
 
 .image-detail {
     display: block;
-
     width: auto;
     max-width: 100%;
-
     height: auto;
     max-height: 760px;
-
     object-fit: contain;
     object-position: center;
-
     image-rendering: auto;
-
     transition:
         filter 300ms ease,
         transform 300ms ease;
 }
 
+.image-preview:hover .image-detail {
+    filter: brightness(1.04);
+}
 
 
-
-/* =========================================
-   Image information
-========================================= */
+/* Information */
 
 .image-info {
     margin-top: var(--space-5);
@@ -213,41 +164,36 @@
 .image-actions {
     display: flex;
     flex-wrap: wrap;
-
     align-items: center;
     justify-content: space-between;
-
     gap: var(--space-4);
 }
 
-.image-stats {
+.image-stats,
+.image-action-buttons {
     display: flex;
     align-items: center;
+}
 
+.image-stats {
     gap: var(--space-5);
+}
+
+.image-action-buttons {
+    flex-wrap: wrap;
+    gap: var(--space-3);
 }
 
 .image-stat {
     display: flex;
     align-items: baseline;
-
     gap: var(--space-1);
-
     color: var(--text-secondary);
 }
 
 .image-stat strong {
     color: var(--text-primary);
     font-size: 1.1rem;
-}
-
-.image-action-buttons {
-    display: flex;
-    flex-wrap: wrap;
-
-    align-items: center;
-
-    gap: var(--space-3);
 }
 
 .image-delete-form {
@@ -265,11 +211,8 @@
 .image-description {
     margin-top: var(--space-5);
     padding-top: var(--space-5);
-
     border-top: 1px solid var(--border-subtle);
-
     color: var(--text-secondary);
-
     overflow-wrap: anywhere;
 }
 
@@ -282,9 +225,7 @@
 }
 
 
-/* =========================================
-   Liked users
-========================================= */
+/* Likes */
 
 .image-likes {
     margin-top: var(--space-6);
@@ -292,20 +233,15 @@
 
 .image-likes-heading {
     display: flex;
-
     align-items: baseline;
     justify-content: space-between;
-
     gap: var(--space-4);
-
     margin-bottom: var(--space-5);
 }
 
 .image-likes-heading h2 {
     margin: 0;
-
     color: var(--text-primary);
-
     font-size: clamp(1.15rem, 2vw, 1.45rem);
 }
 
@@ -316,13 +252,11 @@
 
 .liked-users-list {
     display: grid;
-
     grid-template-columns:
         repeat(
             auto-fill,
             minmax(135px, 1fr)
         );
-
     gap: var(--space-4);
 }
 
@@ -330,21 +264,15 @@
     display: flex;
     min-width: 0;
     padding: var(--space-3);
-
     flex-direction: column;
     align-items: center;
-
     gap: var(--space-2);
-
     border: 1px solid transparent;
     border-radius: var(--radius-md);
-
     color: var(--text-primary);
     background: var(--surface-secondary);
-
     text-align: center;
     text-decoration: none;
-
     transition:
         background-color var(--transition-fast),
         border-color var(--transition-fast),
@@ -354,7 +282,6 @@
 .liked-user:hover {
     border-color: var(--border-default);
     background: var(--surface-hover);
-
     transform: translateY(-2px);
 }
 
@@ -366,7 +293,6 @@
 .liked-user-name {
     display: block;
     width: 100%;
-
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -377,9 +303,7 @@
 }
 
 
-/* =========================================
-   Tablet and mobile
-========================================= */
+/* Responsive */
 
 @media (max-width: 767.98px) {
     .image-detail-header {
@@ -439,7 +363,6 @@
     .image-likes-heading {
         align-items: flex-start;
         flex-direction: column;
-
         gap: var(--space-1);
     }
 
@@ -451,4 +374,3 @@
             );
     }
 }
-

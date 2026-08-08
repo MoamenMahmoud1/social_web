@@ -1,11 +1,62 @@
+
 {% extends "base.html" %}
-{% block title %}Bookmark an image{% endblock %}
-{% block content %}
- <h1>Bookmark an image</h1>
- <img src="{{ request.GET.url }}" class="image-preview">
- <form method="post">
- {{ form.as_p }}
- {% csrf_token %}
- <input type="submit" value="Bookmark it!">
- </form>
+
+{% block title %}
+    Bookmark an image
 {% endblock %}
+
+{% block content %}
+<section class="image-create-page">
+    <div class="image-create-card">
+        <header class="image-create-header">
+            <h1>
+                Bookmark an image
+            </h1>
+
+            <p>
+                Save this image to your collection.
+            </p>
+        </header>
+
+        {% if request.GET.url %}
+            <div class="image-create-preview">
+                <img
+                    src="{{ request.GET.url }}"
+                    alt="Image preview"
+                    class="image-preview"
+                >
+            </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div
+                class="alert alert-danger"
+                role="alert"
+            >
+                {% for error in form.non_field_errors %}
+                    <p class="mb-0">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            novalidate
+        >
+            {% csrf_token %}
+
+            {% include "components/form_fields.html" with form=form field_wrapper_class="image-form-field" %}
+
+            <button
+                type="submit"
+                class="btn btn-primary w-100"
+            >
+                Bookmark it!
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+

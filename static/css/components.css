@@ -325,3 +325,48 @@
     }
 }
 
+
+.empty-state {
+    padding: var(--space-8);
+
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-lg);
+
+    color: var(--text-secondary);
+    background: var(--surface-primary);
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+
+.page-header {
+    max-width: 46rem;
+}
+
+.page-eyebrow {
+    margin: 0 0 var(--space-2);
+    color: var(--brand-primary);
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.page-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 780;
+    letter-spacing: -0.055em;
+    line-height: 1.05;
+}
+
+.page-description {
+    margin: var(--space-3) 0 0;
+    color: var(--text-secondary);
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    line-height: 1.65;
+}
+
