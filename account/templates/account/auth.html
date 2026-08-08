@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load static_version %}
+
+{% block title %}
+    {% if active_panel == "signup" %}
+        Create account
+    {% else %}
+        Log in
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'account/css/auth.css' %}"
+        rel="stylesheet"
+    >
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+    <div class="auth-shell">
+        <header class="auth-header">
+            <span class="auth-eyebrow">
+                Bookmarks
+            </span>
+
+            <h1 class="auth-title">
+                Welcome
+            </h1>
+
+            <p class="auth-description">
+                Log in or create an account to continue.
+            </p>
+        </header>
+
+        <div class="auth-wallet">
+            <div class="auth-card card">
+                <div class="card-body">
+                    <ul
+                        class="nav nav-pills auth-tabs"
+                        role="tablist"
+                    >
+                        <li
+                            class="nav-item"
+                            role="presentation"
+                        >
+                            <button
+                                id="login-tab"
+                                class="nav-link{% if active_panel != 'signup' %} active{% endif %}"
+                                data-bs-toggle="pill"
+                                data-bs-target="#login-panel"
+                                type="button"
+                                role="tab"
+                                aria-controls="login-panel"
+                                aria-selected="{% if active_panel != 'signup' %}true{% else %}false{% endif %}"
+                            >
+                                Log in
+                            </button>
+                        </li>
+
+                        <li
+                            class="nav-item"
+                            role="presentation"
+                        >
+                            <button
+                                id="signup-tab"
+                                class="nav-link{% if active_panel == 'signup' %} active{% endif %}"
+                                data-bs-toggle="pill"
+                                data-bs-target="#signup-panel"
+                                type="button"
+                                role="tab"
+                                aria-controls="signup-panel"
+                                aria-selected="{% if active_panel == 'signup' %}true{% else %}false{% endif %}"
+                            >
+                                Create account
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div
+                        class="tab-content auth-content"
+                        data-auth-content
+                    >
+                        <div
+                            id="login-panel"
+                            class="tab-pane fade{% if active_panel != 'signup' %} show active{% endif %}"
+                            role="tabpanel"
+                            aria-labelledby="login-tab"
+                            tabindex="0"
+                        >
+                            <div class="auth-panel-inner">
+                                <div class="auth-panel-heading">
+                                    <span class="auth-panel-number">
+                                        01
+                                    </span>
+
+                                    <h2>
+                                        Welcome back
+                                    </h2>
+                                </div>
+
+                                {% if login_form.non_field_errors %}
+                                    <div
+                                        class="alert alert-danger"
+                                        role="alert"
+                                    >
+                                        {% for error in login_form.non_field_errors %}
+                                            <p class="mb-0">
+                                                {{ error }}
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <form
+                                    action="{% url 'login' %}"
+                                    method="post"
+                                    novalidate
+                                >
+                                    {% csrf_token %}
+
+                                    {% if next %}
+                                        <input
+                                            type="hidden"
+                                            name="next"
+                                            value="{{ next }}"
+                                        >
+                                    {% endif %}
+
+                                    {% include "components/form_fields.html" with form=login_form %}
+
+                                    <div class="auth-options">
+                                        <a href="{% url 'password_reset' %}">
+                                            Forgotten your password?
+                                        </a>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary w-100"
+                                    >
+                                        Log in
+                                    </button>
+                                </form>
+
+                                <div class="auth-divider">
+                                    <span>or</span>
+                                </div>
+
+                                <form
+                                    action="{% url 'social:begin' 'google-oauth2' %}"
+                                    method="post"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-secondary w-100"
+                                    >
+                                        Continue with Google
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div
+                            id="signup-panel"
+                            class="tab-pane fade{% if active_panel == 'signup' %} show active{% endif %}"
+                            role="tabpanel"
+                            aria-labelledby="signup-tab"
+                            tabindex="0"
+                        >
+                            <div class="auth-panel-inner">
+                                <div class="auth-panel-heading">
+                                    <span class="auth-panel-number">
+                                        02
+                                    </span>
+
+                                    <h2>
+                                        Create your account
+                                    </h2>
+                                </div>
+
+                                {% if signup_form.non_field_errors %}
+                                    <div
+                                        class="alert alert-danger"
+                                        role="alert"
+                                    >
+                                        {% for error in signup_form.non_field_errors %}
+                                            <p class="mb-0">
+                                                {{ error }}
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <form
+                                    action="{% url 'register' %}"
+                                    method="post"
+                                    novalidate
+                                >
+                                    {% csrf_token %}
+
+                                    {% include "components/form_fields.html" with form=signup_form %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary w-100"
+                                    >
+                                        Create account
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script
+        src="{% versioned_static 'account/js/auth.js' %}"
+        defer
+    ></script>
+{% endblock %}
+

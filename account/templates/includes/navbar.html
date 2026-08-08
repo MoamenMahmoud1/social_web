@@ -1,4 +1,3 @@
-
 <header
     id="header"
     class="site-header sticky-top"
@@ -9,7 +8,7 @@
     >
         <div class="site-container">
             <a
-                href="{% if request.user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'login' %}{% endif %}"
+                href="{% if request.user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'register' %}{% endif %}"
                 class="navbar-brand site-brand"
             >
                 <span
@@ -175,17 +174,10 @@
                     {% else %}
                         <div class="guest-navigation">
                             <a
-                                href="{% url 'login' %}"
-                                class="navbar-action-button"
-                            >
-                                Log in
-                            </a>
-
-                            <a
                                 href="{% url 'register' %}"
                                 class="navbar-action-button navbar-action-primary"
                             >
-                                Create account
+                                Get started
                             </a>
                         </div>
                     {% endif %}
