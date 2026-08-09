@@ -79,11 +79,14 @@ def image_create(request):
 
 @ensure_csrf_cookie
 @login_required
-def image_detail(
-    request,
-    id,
-    slug,
-):
+def image_detail(request,id,slug):
+    """
+    Render an image detail page with optimized ownership and like data.
+
+    The query annotates whether the current user liked the image, limits
+    loaded columns, fetches recent likers efficiently, and records a
+    deduplicated view through the Redis-backed ranking service.
+    """
     user_like_model = (
         Image.users_like.through
     )

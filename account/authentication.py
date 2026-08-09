@@ -1,7 +1,14 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class EmailAuthBackend:
+    """
+    Authenticate Django users using their email address and password.
+
+    Authentication fails when the email does not exist, when more than one
+    account uses the same email address, or when the password is invalid.
+    """
     def authenticate(self , request , username=None , password=None):
         
         try:
@@ -23,7 +30,10 @@ class EmailAuthBackend:
         
 from . import models
 def create_profile(backend, user, *args, **kwargs):
- """
- Create user profile for social authentication
- """
- models.Profile.objects.get_or_create(user=user)
+    """
+        Ensure socially authenticated users have an associated Profile.
+
+        This function is intended for the social-auth pipeline and is idempotent:
+        an existing profile is reused instead of creating a duplicate.
+        """
+    models.Profile.objects.get_or_create(user=user)

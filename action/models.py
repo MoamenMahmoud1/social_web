@@ -9,6 +9,9 @@ from django.db import models
 
 
 class Action(models.Model):
+    """
+    Represent an activity-stream event with an optional generic target.
+    """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="actions",

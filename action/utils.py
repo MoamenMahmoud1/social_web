@@ -12,12 +12,19 @@ ACTION_DUPLICATE_WINDOW_SECONDS = 60
 
 def create_action(user, verb, target=None):
     """
-    Create an activity action unless an equivalent action
-    was created recently.
+    Create a user activity entry while suppressing near-duplicate actions.
+
+    Similar actions from the same user are ignored when they occur within
+    a short time window. This keeps the activity stream from being flooded
+    by repeated operations such as rapid likes, follows, or bookmarks.
+
+    Args:
+        user: User responsible for the activity.
+        verb: Human-readable description of the action.
+        target: Optional object associated with the activity.
 
     Returns:
-        True: a new action was created.
-        False: a recent duplicate already exists.
+        bool: True when a new action is created, otherwise False.
     """
 
     if user is None or user.pk is None:

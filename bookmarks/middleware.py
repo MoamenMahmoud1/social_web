@@ -4,10 +4,13 @@ from django.urls import reverse
 
 class HideAdminFromNonStaffMiddleware:
     """
-    Hide the Django admin from users who are not staff.
+    Restrict access to the Django admin area to staff users.
 
-    Staff members and superusers continue to access the
-    admin normally. Other users receive a real 404 response.
+    Requests targeting the admin URL from unauthenticated or non-staff users
+    are rejected before reaching Django's admin views.
+
+    This middleware is an additional access-control layer and does not replace
+    Django admin's built-in authentication and permission checks.
     """
 
     def __init__(self, get_response):

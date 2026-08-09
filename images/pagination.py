@@ -96,10 +96,10 @@ def paginate_images_by_cursor(
     batch_size: int = IMAGE_BATCH_SIZE,
 ) -> CursorBatch[T]:
     """
-    Return one image batch using keyset pagination.
+    Return a cursor-based slice of images without using database OFFSET.
 
-    The queryset must contain `created` and `id` fields
-    and must represent images ordered newest-first.
+    The cursor represents the boundary of the previous result set, making
+    pagination stable and efficient for continuously loaded image feeds.
     """
 
     if batch_size <= 0:

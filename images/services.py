@@ -33,7 +33,13 @@ SAFE_IMAGE_FORMATS = {
 
 def validate_public_url(url):
     """
-    Validate the URL before allowing the server to connect to it.
+    Validate an externally supplied image URL before connecting to it.
+
+    Rejects unsupported schemes, embedded credentials, non-standard ports,
+    unresolved hosts, and IP addresses that are not globally routable.
+
+    Raises:
+        ValidationError: If the URL is unsafe or cannot be resolved.
     """
 
     parsed_url = urlparse(url)

@@ -45,7 +45,7 @@ class Image(models.Model):
         related_name="images_liked",
         blank=True,
     )
-
+    # Denormalized counter maintained by the like service to avoid COUNT queries.
     total_likes = models.PositiveIntegerField(
         default=0,
         editable=False,

@@ -30,6 +30,17 @@ def error_response(
 @login_required
 @require_POST
 def user_follow(request):
+    """
+    Apply an idempotent follow or unfollow operation.
+
+    The relationship update runs inside a database transaction.
+    Repeated follow requests do not create duplicate relationships,
+    and repeated unfollow requests safely leave the relationship absent.
+
+    Returns:
+        JsonResponse: The requested action, whether the relationship changed,
+        and the target user's current follower count.
+    """
     user_id = request.POST.get("id")
     action = request.POST.get("action")
 

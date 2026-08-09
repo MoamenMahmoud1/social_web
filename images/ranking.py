@@ -55,12 +55,14 @@ def increment_image_views(
     viewer_id: int,
 ) -> int | None:
     """
-    Count one view per user and image every hour.
+    Increment an image's Redis ranking score once per viewer window.
 
-    Return the current image view score.
+    Uses a temporary per-viewer key to avoid counting repeated page loads
+    during the configured TTL. Redis failures are treated as non-fatal so
+    image pages remain available when ranking infrastructure is unavailable.
 
-    If Redis is unavailable, return None and allow
-    the image page to continue loading normally.
+    Returns:
+        float | None: Updated score, or None if Redis is unavailable.
     """
 
     if image_id <= 0 or viewer_id <= 0:

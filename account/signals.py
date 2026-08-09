@@ -12,8 +12,10 @@ from .models import Profile
 )
 def create_user_profile(sender, instance, created, **kwargs):
     """
-    Create a Profile automatically whenever
-    a new user is created.
+    Create a profile automatically when a new user account is created.
+
+    The signal guarantees that application users have an associated Profile
+    object immediately after successful account creation.
     """
 
     if created:
