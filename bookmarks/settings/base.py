@@ -35,7 +35,6 @@ ALLOWED_HOSTS = config(
 INSTALLED_APPS = [
     'easy_thumbnails',
     'images.apps.ImagesConfig',
-    'django_extensions',    
     'social_django',
     'account.apps.AccountConfig',
     'action.apps.ActionConfig',

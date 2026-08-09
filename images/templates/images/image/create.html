@@ -1,62 +1,167 @@
-
 {% extends "base.html" %}
+{% load static_version %}
 
 {% block title %}
-    Bookmark an image
+Bookmark an image
+{% endblock %}
+
+{% block extra_css %}
+<link
+    href="{% versioned_static 'images/css/image-create.css' %}"
+    rel="stylesheet"
+>
 {% endblock %}
 
 {% block content %}
-<section class="image-create-page">
-    <div class="image-create-card">
+<section
+    class="image-create-page"
+    aria-labelledby="image-create-title"
+>
+    <div class="image-create-shell">
         <header class="image-create-header">
-            <h1>
-                Bookmark an image
+            <p class="image-create-eyebrow">
+                New bookmark
+            </p>
+
+            <h1
+                id="image-create-title"
+                class="image-create-title"
+            >
+                Save an image
             </h1>
 
-            <p>
-                Save this image to your collection.
+            <p class="image-create-description">
+                Add an image to your collection and keep it ready
+                to revisit whenever you need it.
             </p>
         </header>
 
-        {% if request.GET.url %}
-            <div class="image-create-preview">
-                <img
-                    src="{{ request.GET.url }}"
-                    alt="Image preview"
-                    class="image-preview"
-                >
+        <div class="image-create-layout">
+            <div class="image-create-main">
+                <div class="image-create-card">
+                    <div class="image-create-card-header">
+                        <span class="image-create-step">
+                            01
+                        </span>
+
+                        <div>
+                            <h2>
+                                Image details
+                            </h2>
+
+                            <p>
+                                Review the details below before saving.
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div
+                            class="alert alert-danger"
+                            role="alert"
+                        >
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form
+                        method="post"
+                        class="image-create-form"
+                        novalidate
+                    >
+                        {% csrf_token %}
+
+                        {% include "components/form_fields.html" with form=form field_wrapper_class="image-form-field" %}
+
+                        <div class="image-create-actions">
+                            <a
+                                href="{% url 'images:list' %}"
+                                class="btn btn-outline-secondary"
+                            >
+                                Cancel
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Save image
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        {% endif %}
 
-        {% if form.non_field_errors %}
-            <div
-                class="alert alert-danger"
-                role="alert"
-            >
-                {% for error in form.non_field_errors %}
-                    <p class="mb-0">
-                        {{ error }}
-                    </p>
-                {% endfor %}
-            </div>
-        {% endif %}
+            <aside class="image-create-sidebar">
+                {% if request.GET.url %}
+                    <div class="image-preview-card">
+                        <div class="image-preview-heading">
+                            <span class="image-create-step">
+                                02
+                            </span>
 
-        <form
-            method="post"
-            novalidate
-        >
-            {% csrf_token %}
+                            <div>
+                                <h2>
+                                    Preview
+                                </h2>
 
-            {% include "components/form_fields.html" with form=form field_wrapper_class="image-form-field" %}
+                                <p>
+                                    This is the image that will be bookmarked.
+                                </p>
+                            </div>
+                        </div>
 
-            <button
-                type="submit"
-                class="btn btn-primary w-100"
-            >
-                Bookmark it!
-            </button>
-        </form>
+                        <div class="image-preview-frame">
+                            <img
+                                src="{{ request.GET.url }}"
+                                alt="Image preview"
+                                class="image-preview"
+                            >
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="image-create-guide">
+                        <span class="image-create-step">
+                            02
+                        </span>
+
+                        <h2>
+                            Add from anywhere
+                        </h2>
+
+                        <p>
+                            Paste an image URL or use the bookmarklet
+                            to save images directly from other websites.
+                        </p>
+
+                        <div class="image-create-guide-item">
+                            <span aria-hidden="true">1</span>
+                            <p>
+                                Choose an image you want to keep.
+                            </p>
+                        </div>
+
+                        <div class="image-create-guide-item">
+                            <span aria-hidden="true">2</span>
+                            <p>
+                                Add its title and image URL.
+                            </p>
+                        </div>
+
+                        <div class="image-create-guide-item">
+                            <span aria-hidden="true">3</span>
+                            <p>
+                                Save it to your collection.
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            </aside>
+        </div>
     </div>
 </section>
 {% endblock %}
-
