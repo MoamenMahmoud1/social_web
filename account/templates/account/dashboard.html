@@ -1,53 +1,230 @@
 {% extends "base.html" %}
+{% load static_version %}
 
 {% block title %}
     Dashboard
 {% endblock %}
 
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'account/css/dashboard.css' %}"
+        rel="stylesheet"
+    >
+{% endblock %}
+
 {% block content %}
-    <h1>Dashboard</h1>
+<section class="dashboard-page">
+    <header class="dashboard-hero">
+        <div class="dashboard-hero-content">
+            <p class="dashboard-eyebrow">
+                Your workspace
+            </p>
 
-    <p>
-        Welcome to your dashboard.
-        You have bookmarked
-        {{ total_images_created }}
-        image{{ total_images_created|pluralize }}.
-    </p>
+            <h1 class="dashboard-title">
+                Welcome back,
+                {{ request.user.first_name|default:request.user.username }}
+            </h1>
 
-    <p>
-        Drag the following button to your bookmarks toolbar
-        to bookmark images from other websites:
-    </p>
+            <p class="dashboard-description">
+                Manage your bookmarks, discover new images,
+                and keep up with people you follow.
+            </p>
+        </div>
 
-    <p>
-        <a
-            class="button"
-            href="javascript:(function(){if(window.bookmarkletLoaded&amp;&amp;typeof window.bookmarkletLaunch==='function'){window.bookmarkletLaunch();return;}var s=document.createElement('script');s.src='http://127.0.0.1:8000/static/images/js/bookmarklet.js?r='+Date.now();s.onload=function(){window.bookmarkletLoaded=true;};s.onerror=function(){window.bookmarkletLoaded=false;alert('Could not load the bookmarklet script.');};document.body.appendChild(s);})();"
+        <div class="dashboard-hero-actions">
+            <a
+                href="{% url 'images:create' %}"
+                class="button button-primary button-large"
+            >
+                Add image
+            </a>
+
+            <a
+                href="{{ request.user.get_absolute_url }}"
+                class="button button-secondary button-large"
+            >
+                View profile
+            </a>
+        </div>
+    </header>
+
+    <div class="dashboard-overview">
+        <article class="dashboard-stat-card">
+            <div class="dashboard-stat-top">
+                <span class="dashboard-stat-label">
+                    Saved images
+                </span>
+
+                <span
+                    class="dashboard-stat-icon"
+                    aria-hidden="true"
+                >
+                    ↗
+                </span>
+            </div>
+
+            <strong class="dashboard-stat-value">
+                {{ total_images_created }}
+            </strong>
+
+            <p class="dashboard-stat-description">
+                Image{{ total_images_created|pluralize }}
+                in your collection
+            </p>
+        </article>
+
+        <article class="dashboard-bookmarklet">
+            <div class="dashboard-bookmarklet-content">
+                <p class="dashboard-card-eyebrow">
+                    Browser tool
+                </p>
+
+                <h2>
+                    Save images from anywhere
+                </h2>
+
+                <p>
+                    Drag the button to your browser bookmarks bar,
+                    then use it whenever you find an image you want
+                    to save.
+                </p>
+            </div>
+
+            <a
+                class="button button-primary dashboard-bookmarklet-button"
+                href="javascript:(function(){if(window.bookmarkletLoaded&amp;&amp;typeof window.bookmarkletLaunch==='function'){window.bookmarkletLaunch();return;}var s=document.createElement('script');s.src='http://127.0.0.1:8000/static/images/js/bookmarklet.js?r='+Date.now();s.onload=function(){window.bookmarkletLoaded=true;};s.onerror=function(){window.bookmarkletLoaded=false;alert('Could not load the bookmarklet script.');};document.body.appendChild(s);})();"
+            >
+                Bookmark it
+            </a>
+        </article>
+    </div>
+
+    <section class="dashboard-section">
+        <header class="dashboard-section-header">
+            <div>
+                <p class="dashboard-card-eyebrow">
+                    Shortcuts
+                </p>
+
+                <h2>
+                    Quick actions
+                </h2>
+            </div>
+        </header>
+
+        <div class="dashboard-actions-grid">
+            <a
+                href="{% url 'edit' %}"
+                class="dashboard-action-card"
+            >
+                <span class="dashboard-action-number">
+                    01
+                </span>
+
+                <div>
+                    <strong>
+                        Edit profile
+                    </strong>
+
+                    <span>
+                        Update your personal information
+                    </span>
+                </div>
+
+                <span
+                    class="dashboard-action-arrow"
+                    aria-hidden="true"
+                >
+                    →
+                </span>
+            </a>
+
+            <a
+                href="{% url 'password_change' %}"
+                class="dashboard-action-card"
+            >
+                <span class="dashboard-action-number">
+                    02
+                </span>
+
+                <div>
+                    <strong>
+                        Change password
+                    </strong>
+
+                    <span>
+                        Manage your account security
+                    </span>
+                </div>
+
+                <span
+                    class="dashboard-action-arrow"
+                    aria-hidden="true"
+                >
+                    →
+                </span>
+            </a>
+
+            <a
+                href="{% url 'images:list' %}"
+                class="dashboard-action-card"
+            >
+                <span class="dashboard-action-number">
+                    03
+                </span>
+
+                <div>
+                    <strong>
+                        Browse images
+                    </strong>
+
+                    <span>
+                        Explore community bookmarks
+                    </span>
+                </div>
+
+                <span
+                    class="dashboard-action-arrow"
+                    aria-hidden="true"
+                >
+                    →
+                </span>
+            </a>
+        </div>
+    </section>
+
+    <section class="dashboard-section">
+        <header class="dashboard-section-header">
+            <div>
+                <p class="dashboard-card-eyebrow">
+                    Network
+                </p>
+
+                <h2>
+                    What's happening
+                </h2>
+            </div>
+
+            <a
+                href="{% url 'user_list' %}"
+                class="button button-secondary button-small"
+            >
+                Find people
+            </a>
+        </header>
+
+        <div
+            id="action-list"
+            class="dashboard-activity-list"
         >
-            Bookmark it
-        </a>
-    </p>
-
-    <p>
-        You can also
-        <a href="{% url 'edit' %}">
-            edit your profile
-        </a>
-        or
-        <a href="{% url 'password_change' %}">
-            change your password
-        </a>.
-    </p>
-
-    <section class="activity">
-        <h2>What's happening</h2>
-
-        <div id="action-list">
             {% for action in actions %}
                 {% include "actions/detail.html" %}
             {% empty %}
-                <p>No recent activity.</p>
+                <div class="empty-state dashboard-empty">
+                    No recent activity yet.
+                </div>
             {% endfor %}
         </div>
     </section>
+</section>
 {% endblock %}

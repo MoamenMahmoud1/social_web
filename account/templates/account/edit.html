@@ -1,29 +1,109 @@
 {% extends "base.html" %}
+{% load static_version %}
 
 {% block title %}
-    Edit your account
+    Edit profile
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'account/css/edit-profile.css' %}"
+        rel="stylesheet"
+    >
 {% endblock %}
 
 {% block content %}
-<section class="form-page">
-    {% include "components/page_header.html" with title="Edit your account" description="Update your account and profile information." %}
+<section class="edit-profile-page">
+    <header class="edit-profile-header">
+        <div>
+            <p class="edit-profile-eyebrow">
+                Account settings
+            </p>
+
+            <h1 class="edit-profile-title">
+                Edit your profile
+            </h1>
+
+            <p class="edit-profile-description">
+                Keep your personal information and profile photo up to date.
+            </p>
+        </div>
+
+        <a
+            href="{{ request.user.get_absolute_url }}"
+            class="button button-secondary"
+        >
+            View profile
+        </a>
+    </header>
 
     <form
         method="post"
         enctype="multipart/form-data"
+        class="edit-profile-form"
+        novalidate
     >
         {% csrf_token %}
 
-        {% include "components/form_fields.html" with form=user_form %}
+        <section class="settings-card">
+            <header class="settings-card-header">
+                <div class="settings-card-number">
+                    01
+                </div>
 
-        {% include "components/form_fields.html" with form=profile_form %}
+                <div>
+                    <h2>
+                        Personal information
+                    </h2>
 
-        <button
-            type="submit"
-            class="button button-primary"
-        >
-            Save changes
-        </button>
+                    <p>
+                        Update the information shown on your account.
+                    </p>
+                </div>
+            </header>
+
+            <div class="settings-fields">
+                {% include "components/form_fields.html" with form=user_form field_wrapper_class="settings-field" %}
+            </div>
+        </section>
+
+        <section class="settings-card">
+            <header class="settings-card-header">
+                <div class="settings-card-number">
+                    02
+                </div>
+
+                <div>
+                    <h2>
+                        Profile details
+                    </h2>
+
+                    <p>
+                        Manage your birthday and profile image.
+                    </p>
+                </div>
+            </header>
+
+            <div class="settings-fields">
+                {% include "components/form_fields.html" with form=profile_form field_wrapper_class="settings-field" %}
+            </div>
+        </section>
+
+        <div class="edit-profile-actions">
+            <a
+                href="{{ request.user.get_absolute_url }}"
+                class="button button-secondary"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="button button-primary"
+            >
+                Save changes
+            </button>
+        </div>
     </form>
 </section>
 {% endblock %}
