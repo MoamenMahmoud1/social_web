@@ -1,57 +1,149 @@
-{% with action_user=action.user %}
-<article class="activity-item">
-    <a
-        href="{{ action_user.get_absolute_url }}"
-        class="activity-avatar-link"
-        aria-label="View {{ action_user.username }} profile"
+{% extends "base.html" %}
+{% load static_version %}
+
+{% block title %}
+    {{ user.get_full_name|default:user.username }}
+{% endblock %}
+
+{% block extra_css %}
+    <link
+        href="{% versioned_static 'images/css/image-cards.css' %}"
+        rel="stylesheet"
     >
-        {% include "components/avatar.html" with user=action_user size="64x64" class_name="activity-avatar" placeholder_class="activity-avatar-placeholder" lazy=True %}
-    </a>
 
-    <div class="activity-content">
-        <div class="activity-main">
-            <a
-                href="{{ action_user.get_absolute_url }}"
-                class="activity-user"
-            >
-                {{ action_user.get_full_name|default:action_user.username }}
-            </a>
+    <link
+        href="{% versioned_static 'account/css/user-detail.css' %}"
+        rel="stylesheet"
+    >
+{% endblock %}
 
-            <span class="activity-verb">
-                {{ action.verb }}
-            </span>
+{% block content %}
+<section class="profile-page">
+    <header class="profile-header">
+        {% include "components/avatar.html" with user=user size="180x180" class_name="profile-avatar" placeholder_class="profile-initial" %}
 
-            {% if action.target %}
-                <a
-                    href="{{ action.target.get_absolute_url }}"
-                    class="activity-target"
-                >
-                    {{ action.target }}
-                </a>
-            {% endif %}
+        <div class="profile-summary">
+            <p class="profile-eyebrow">
+                Profile
+            </p>
+
+            <h1 class="profile-name">
+                {{ user.get_full_name|default:user.username }}
+            </h1>
+
+            <p class="profile-username">
+                @{{ user.username }}
+            </p>
+
+            <div class="profile-actions">
+                <p class="follower-count">
+                    <strong
+                        class="follower-total"
+                        data-follower-total
+                    >
+                        {{ user.total_followers }}
+                    </strong>
+
+                    <span data-follower-label>
+                        follower{{ user.total_followers|pluralize }}
+                    </span>
+                </p>
+
+                {% if request.user != user %}
+                    <button
+                        type="button"
+                        class="button button-primary follow-button{% if user.is_followed_by_request_user %} is-following{% endif %}"
+                        data-follow-button
+                        data-user-id="{{ user.id }}"
+                        data-follow-url="{% url 'user_follow' %}"
+                        data-action="{% if user.is_followed_by_request_user %}unfollow{% else %}follow{% endif %}"
+                        aria-pressed="{% if user.is_followed_by_request_user %}true{% else %}false{% endif %}"
+                    >
+                        {% if user.is_followed_by_request_user %}
+                            Unfollow
+                        {% else %}
+                            Follow
+                        {% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <section class="profile-images">
+        <header class="profile-images-header">
+            <h2 class="profile-images-title">
+                Images bookmarked by {{ user.username }}
+            </h2>
+        </header>
+
+        <div
+            id="image-list"
+            class="image-container"
+        >
+            {% include "images/image/list_images.html" with images=images %}
         </div>
 
-        <time
-            class="activity-date"
-            datetime="{{ action.created|date:'c' }}"
-        >
-            {{ action.created|timesince }} ago
-        </time>
-    </div>
-
-    {% if action.target and action.target.image %}
-        <a
-            href="{{ action.target.get_absolute_url }}"
-            class="activity-preview"
-            aria-label="View {{ action.target }}"
-        >
-            <img
-                src="{{ action.target.image.url }}"
-                alt=""
-                loading="lazy"
-                decoding="async"
+        {% if images.has_other_pages %}
+            <nav
+                class="profile-pagination"
+                aria-label="Images pagination"
             >
-        </a>
-    {% endif %}
-</article>
-{% endwith %}
+                <div class="pagination-actions">
+                    {% if images.has_previous %}
+                        <a
+                            href="?page=1"
+                            class="button button-secondary button-small"
+                        >
+                            First
+                        </a>
+
+                        <a
+                            href="?page={{ images.previous_page_number }}"
+                            class="button button-secondary button-small"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+                </div>
+
+                <span class="pagination-current">
+                    Page {{ images.number }}
+                    of {{ images.paginator.num_pages }}
+                </span>
+
+                <div class="pagination-actions">
+                    {% if images.has_next %}
+                        <a
+                            href="?page={{ images.next_page_number }}"
+                            class="button button-secondary button-small"
+                        >
+                            Next
+                        </a>
+
+                        <a
+                            href="?page={{ images.paginator.num_pages }}"
+                            class="button button-secondary button-small"
+                        >
+                            Last
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script
+        src="{% versioned_static 'js/csrf.js' %}"
+        defer
+    ></script>
+
+    <script
+        src="{% versioned_static 'account/js/user-detail.js' %}"
+        defer
+    ></script>
+{% endblock %}
+
